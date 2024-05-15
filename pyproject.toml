@@ -1,0 +1,41 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "me-llm"
+version = "0.0.1"
+description = "Python package to create an AI clone of yourself using LLMs"
+license = "MIT"
+authors = ["Mehdi Samsami <mehdisamsami@live.com>"]
+readme = "README.md"
+repository = "https://github.com/msamsami/me-llm"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+litellm = {version = ">=1.36.0"}
+langchain = {version = ">=0.1.17"}
+PyMuPDF = "*"
+magentic = {version = ">=0.23.0,<1.0", optional = true}
+
+[tool.poetry.extras]
+magentic = ["magentic"]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+mypy = "*"
+pytest-asyncio = "*"
+python-dotenv = "^1.0.1"
+ruff = ">=0.3,<0.5"
+
+[tool.mypy]
+check_untyped_defs = true
+disable_error_code = ["empty-body"]
+disallow_untyped_defs = false
+strict = true
+
+[tool.ruff]
+include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
+line-length=130
+# Use `ruff linter` to list available linters
+# https://beta.ruff.rs/docs/rules/
