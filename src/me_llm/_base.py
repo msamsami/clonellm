@@ -1,13 +1,18 @@
 from abc import ABCMeta
-from typing import Optional
+from typing import Mapping, Optional
 
 from litellm import get_llm_provider, get_api_key
 
+__all__ = ("LiteLLMMixin",)
+
 
 class LiteLLMMixin(metaclass=ABCMeta):
-    def __init__(self, model: str, api_key: Optional[str] = None) -> None:
+    _litellm_kwargs: Mapping = {}
+
+    def __init__(self, model: str, api_key: Optional[str] = None, **kwargs) -> None:
         self.model = model
         self.api_key = api_key
+        self._litellm_kwargs = kwargs
 
     @property
     def _api_key(self):
