@@ -1,3 +1,4 @@
+from __future__ import annotations
 import datetime
 from pathlib import Path
 from typing import Optional
@@ -12,17 +13,18 @@ Path = str | Path
 
 class PersonalInfo(BaseModel):
     first_name: str
-    middle_name: Optional[str]
+    middle_name: Optional[str] = None
     last_name: str
-    birth_date: Optional[datetime.date]
-    gender: Optional[str]
-    city: Optional[str]
-    country: Optional[str]
-    phone_number: Optional[str]
-    email: Optional[str]
-    home_page: Optional[str]
-    github_page: Optional[str]
-    linkedin_page: Optional[str]
+    birth_date: Optional[datetime.date] = None
+    gender: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
+    expertise: Optional[list[str]] = None
+    home_page: Optional[str] = None
+    github_page: Optional[str] = None
+    linkedin_page: Optional[str] = None
 
     @property
     def full_name(self) -> str:
