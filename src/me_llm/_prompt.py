@@ -1,6 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-__all__ = ("context_prompt", "personal_info_prompt", "question_prompt")
+__all__ = ("context_prompt", "user_profile_prompt", "question_prompt")
+
 
 context_prompt = ChatPromptTemplate.from_messages(
     [
@@ -12,14 +13,14 @@ context_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-personal_info_prompt = ChatPromptTemplate.from_messages(
+user_profile_prompt = ChatPromptTemplate.from_messages(
     [
-        ("system", "Here is all the known information about me: {personal_info}"),
+        ("system", "Here is all the known information about me: {user_profile}"),
     ]
 )
 
 question_prompt = ChatPromptTemplate.from_messages(
     [
-        ("user", "Question: {input}"),
+        ("user", "Question: {question}"),
     ]
 )
