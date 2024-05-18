@@ -15,9 +15,12 @@ class LiteLLMMixin(metaclass=ABCMeta):
         self._litellm_kwargs = kwargs
 
     @property
+    def _llm_provider(self) -> str:
+        return get_llm_provider(model=self.model)[1]
+
+    @property
     def _api_key(self):
         if self.api_key:
             return self.api_key
         else:
-            custom_llm_provider = get_llm_provider(model=self.model)[1]
-            return get_api_key(llm_provider=custom_llm_provider, dynamic_api_key=self.api_key)
+            return get_api_key(llm_provider=self._llm_provider, dynamic_api_key=self.api_key)
