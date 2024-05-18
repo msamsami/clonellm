@@ -57,18 +57,26 @@ class MeLLM(LiteLLMMixin):
         self._llm = ChatLiteLLM(model=self.model, model_name=self.model, **api_key_kwarg, **self._litellm_kwargs)
         self._splitter = CharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
 
+    @classmethod
+    def from_persist_directory(
+        cls,
+        persist_directory: str,
+        model: str,
+        embedding: LiteLLMEmbeddings | Embeddings,
+        user_profile: Optional[UserProfile | dict | str] = None,
+        api_key: Optional[str] = None,
+        **kwargs,
+    ):
+        cls.db = Chroma(
+            collection_name=cls._CHROMA_COLLECTION_NAME, embedding_function=embedding, persist_directory=persist_directory
+        )
+        cls.__is_fitted = True
+        return cls(model=model, documents=None, embedding=embedding, user_profile=user_profile, api_key=api_key, **kwargs)
+
     def _check_documents(self, documents: Optional[list[Document]] = None):
         for i, doc in enumerate(documents or self.documents):
             if not isinstance(doc, Document):
                 raise ValueError(f"document at index {i} is not a valid Document")
-
-    @property
-    def _user_profile(self) -> str:
-        if isinstance(self.user_profile, UserProfile):
-            return self.user_profile.model_dump_json()
-        elif isinstance(self.user_profile, dict):
-            return json.dumps(self.user_profile)
-        return str(self.user_profile)
 
     def fit(self) -> Self:
         self._check_documents()
@@ -108,11 +116,19 @@ class MeLLM(LiteLLMMixin):
         await self.db.aadd_documents(documents)
         return self
 
+    @property
+    def _user_profile(self) -> str:
+        if isinstance(self.user_profile, UserProfile):
+            return self.user_profile.model_dump_json()
+        elif isinstance(self.user_profile, dict):
+            return json.dumps(self.user_profile)
+        return str(self.user_profile)
+
     def _get_rag_chain(self) -> RunnableSequence:
         prompt = context_prompt.copy()
         if self.user_profile:
-            prompt.append(user_profile_prompt.format_messages(user_profile=self._user_profile))
-        prompt.append(question_prompt)
+            prompt += user_profile_prompt.format_messages(user_profile=self._user_profile)
+        prompt += question_prompt
         return (
             {"context": self.db.as_retriever(search_kwargs={"k": 1}), "question": RunnablePassthrough()}
             | prompt
