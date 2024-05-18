@@ -1,23 +1,22 @@
 from __future__ import annotations
 import datetime
-from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseModel
 
-__all__ = ("Path", "PersonalInfo")
+__all__ = ("UserProfile",)
 
 
-Path = str | Path
-
-
-class PersonalInfo(BaseModel):
+class UserProfile(BaseModel):
     first_name: str
     middle_name: Optional[str] = None
     last_name: str
+    preferred_name: Optional[str] = None
+    prefix: Optional[str] = None
     birth_date: Optional[datetime.date] = None
     gender: Optional[str] = None
     city: Optional[str] = None
+    state: Optional[str] = None
     country: Optional[str] = None
     phone_number: Optional[str] = None
     email: Optional[str] = None
