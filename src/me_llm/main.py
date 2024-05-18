@@ -19,8 +19,8 @@ __all__ = ("MeLLM",)
 
 
 class MeLLM(LiteLLMMixin):
+    __is_fitted: bool = False
     _splitter: TextSplitter = None
-    _documents: list[Document] = None
     db: Chroma = None
 
     _CHROMA_COLLECTION_NAME = "mellm"
@@ -45,8 +45,8 @@ class MeLLM(LiteLLMMixin):
         self._llm = ChatLiteLLM(model=self.model, model_name=self.model, **api_key_kwarg, **self._litellm_kwargs)
         self._splitter = CharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
 
-    def _check_documents(self):
-        for i, doc in enumerate(self.documents):
+    def _check_documents(self, documents: Optional[list[Document]] = None):
+        for i, doc in enumerate(documents or self.documents):
             if not isinstance(doc, Document):
                 raise ValueError(f"document at index {i} is not a valid Document")
 
@@ -60,24 +60,47 @@ class MeLLM(LiteLLMMixin):
 
     def fit(self) -> Self:
         self._check_documents()
-        self._documents = None
-        self._documents = self._splitter.split_documents(self.documents)
-        self.db = Chroma.from_documents(self._documents, self.embedding, collection_name=self._CHROMA_COLLECTION_NAME)
+        documents = self._splitter.split_documents(self.documents)
+        self.db = Chroma.from_documents(documents, self.embedding, collection_name=self._CHROMA_COLLECTION_NAME)
+        self.__is_fitted = True
         return self
 
     async def afit(self) -> Self:
         self._check_documents()
-        self._documents = None
-        self._documents = self._splitter.split_documents(self.documents)
-        self.db = await Chroma.afrom_documents(self._documents, self.embedding, collection_name=self._CHROMA_COLLECTION_NAME)
+        documents = self._splitter.split_documents(self.documents)
+        self.db = await Chroma.afrom_documents(documents, self.embedding, collection_name=self._CHROMA_COLLECTION_NAME)
+        self.__is_fitted = True
         return self
 
-    def update(self): ...
+    def _check_is_fitted(self, from_update: bool = False):
+        if not self.__is_fitted or self.db is None or ((self._splitter is None) if from_update else False):
+            raise AttributeError("This MeLLM instance is not fitted yet. Call `fit` using this method.")
 
-    async def aupdate(self): ...
+    def update(
+        self,
+        documents: list[Document],
+    ) -> Self:
+        self._check_is_fitted(from_update=True)
+        self._check_documents(documents)
+        documents = self._splitter.split_documents(self.documents)
+        self.db.add_documents(documents)
+        return self
+
+    async def aupdate(
+        self,
+        documents: list[Document],
+    ) -> Self:
+        self._check_is_fitted(from_update=True)
+        self._check_documents(documents)
+        documents = self._splitter.split_documents(self.documents)
+        await self.db.aadd_documents(documents)
+        return self
 
     def _get_rag_chain(self) -> RunnableSequence:
-        prompt = context_prompt + user_profile_prompt.format_messages(user_profile=self._user_profile) + question_prompt
+        prompt = context_prompt.copy()
+        if self.user_profile:
+            prompt.append(user_profile_prompt.format_messages(user_profile=self._user_profile))
+        prompt.append(question_prompt)
         return (
             {"context": self.db.as_retriever(search_kwargs={"k": 1}), "question": RunnablePassthrough()}
             | prompt
@@ -86,10 +109,12 @@ class MeLLM(LiteLLMMixin):
         )
 
     def completion(self, prompt: str) -> str:
+        self._check_is_fitted()
         rag_chain = self._get_rag_chain()
         return rag_chain.invoke(prompt)
 
     async def acompletion(self, prompt: str) -> str:
+        self._check_is_fitted()
         rag_chain = self._get_rag_chain()
         return await rag_chain.ainvoke(prompt)
 
