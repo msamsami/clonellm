@@ -90,11 +90,8 @@ class MeLLM(LiteLLMMixin):
         return rag_chain.invoke(prompt)
 
     async def acompletion(self, prompt: str) -> str:
-        docs = await self.db.asimilarity_search(prompt, k=1)
-        context = docs[0].page_content
-        prompts = context_prompt + user_profile_prompt + question_prompt
-        messages = await prompts.aformat_messages(context=context, user_profile=self._user_profile, question=prompt)
-        return await self._llm.ainvoke(messages)
+        rag_chain = self._get_rag_chain()
+        return await rag_chain.ainvoke(prompt)
 
     def __repr__(self) -> str:
         return f"MeLLM<(model='{self.model})>"
