@@ -19,6 +19,18 @@ __all__ = ("MeLLM",)
 
 
 class MeLLM(LiteLLMMixin):
+    """Creates an LLM clone of a user based on provided user profile and related context.
+
+    Args:
+        model (str): The name of the language model to use for text completion.
+        documents (list[Document]): List of documents related to cloning user to use as context for the language model.
+        embedding (LiteLLMEmbeddings | Embeddings): The embedding function to use for RAG.
+        user_profile (Optional[UserProfile | dict | str]): The profile of the user to be cloned by the language model. Defaults to None.
+        api_key (Optional[str]): The API key to use. Defaults to None.
+        **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
+
+    """
+
     __is_fitted: bool = False
     _splitter: TextSplitter = None
     db: Chroma = None
