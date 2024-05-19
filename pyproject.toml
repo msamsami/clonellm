@@ -21,8 +21,7 @@ langchain-chroma = "*"
 pytest = "*"
 mypy = "*"
 pytest-asyncio = "*"
-python-dotenv = "^1.0.1"
-ruff = ">=0.3,<0.5"
+ruff = "^0.4"
 
 [tool.mypy]
 check_untyped_defs = true
