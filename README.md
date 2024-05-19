@@ -7,6 +7,7 @@ TBA...
 
 ## TODO
 - [x] Add pre commit configuration file
+- [x] Add setup.py script
 - [ ] Add support for conversation history
 - [ ] Add support for RAG with no embedding (ingest the entire context into the prompt)
 - [ ] Add initial version of README
