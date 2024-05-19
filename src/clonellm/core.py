@@ -1,6 +1,7 @@
 from __future__ import annotations
 import json
 from typing import Optional, Self
+import uuid
 
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
@@ -26,6 +27,7 @@ class CloneLLM(LiteLLMMixin):
         documents (list[Document]): List of documents related to cloning user to use as context for the language model.
         embedding (LiteLLMEmbeddings | Embeddings): The embedding function to use for RAG.
         user_profile (Optional[UserProfile | dict | str]): The profile of the user to be cloned by the language model. Defaults to None.
+        memory (Optional[int]): Number of messages to include in conversation memory. Defaults to None (or 0) for no memory. -1 means infinite memory.
         api_key (Optional[str]): The API key to use. Defaults to None.
         **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
@@ -33,6 +35,7 @@ class CloneLLM(LiteLLMMixin):
 
     __is_fitted: bool = False
     _splitter: TextSplitter = None
+    _session_id: str = None
     db: Chroma = None
 
     _CHROMA_COLLECTION_NAME = "clonellm"
@@ -43,6 +46,7 @@ class CloneLLM(LiteLLMMixin):
         documents: list[Document],
         embedding: LiteLLMEmbeddings | Embeddings,
         user_profile: Optional[UserProfile | dict | str] = None,
+        memory: Optional[int] = None,
         api_key: Optional[str] = None,
         **kwargs,
     ):
@@ -50,12 +54,14 @@ class CloneLLM(LiteLLMMixin):
         self.embedding = embedding
         self.documents = documents
         self.user_profile = user_profile
+        self.memory = memory
         self._internal_init()
 
     def _internal_init(self):
         api_key_kwarg = {f"{self._llm_provider}_api_key": self.api_key}
         self._llm = ChatLiteLLM(model=self.model, model_name=self.model, **api_key_kwarg, **self._litellm_kwargs)
         self._splitter = CharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
+        self.clear_memory()
 
     @classmethod
     def from_persist_directory(
@@ -64,6 +70,7 @@ class CloneLLM(LiteLLMMixin):
         model: str,
         embedding: LiteLLMEmbeddings | Embeddings,
         user_profile: Optional[UserProfile | dict | str] = None,
+        memory: Optional[int] = None,
         api_key: Optional[str] = None,
         **kwargs,
     ):
@@ -71,7 +78,9 @@ class CloneLLM(LiteLLMMixin):
             collection_name=cls._CHROMA_COLLECTION_NAME, embedding_function=embedding, persist_directory=persist_directory
         )
         cls.__is_fitted = True
-        return cls(model=model, documents=None, embedding=embedding, user_profile=user_profile, api_key=api_key, **kwargs)
+        return cls(
+            model=model, documents=None, embedding=embedding, user_profile=user_profile, memory=memory, api_key=api_key, **kwargs
+        )
 
     def _check_documents(self, documents: Optional[list[Document]] = None):
         for i, doc in enumerate(documents or self.documents):
@@ -136,6 +145,8 @@ class CloneLLM(LiteLLMMixin):
             | StrOutputParser()
         )
 
+    def _get_rag_chain_with_history(self) -> RunnableSequence: ...
+
     def completion(self, prompt: str) -> str:
         self._check_is_fitted()
         rag_chain = self._get_rag_chain()
@@ -145,6 +156,9 @@ class CloneLLM(LiteLLMMixin):
         self._check_is_fitted()
         rag_chain = self._get_rag_chain()
         return await rag_chain.ainvoke(prompt)
+
+    def clear_memory(self):
+        self._session_id = str(uuid.uuid4())
 
     def __repr__(self) -> str:
         return f"CloneLLM<(model='{self.model})>"

@@ -3,6 +3,6 @@ __version__ = "0.0.1"
 
 from ._typing import UserProfile
 from .embed import LiteLLMEmbeddings
-from .core import MeLLM
+from .core import CloneLLM
 
-__all__ = ("LiteLLMEmbeddings", "MeLLM", "UserProfile")
+__all__ = ("LiteLLMEmbeddings", "CloneLLM", "UserProfile")
