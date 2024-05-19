@@ -15,10 +15,10 @@ from ._prompt import context_prompt, user_profile_prompt, question_prompt
 from ._typing import UserProfile
 from .embed import LiteLLMEmbeddings
 
-__all__ = ("MeLLM",)
+__all__ = ("CloneLLM",)
 
 
-class MeLLM(LiteLLMMixin):
+class CloneLLM(LiteLLMMixin):
     """Creates an LLM clone of a user based on provided user profile and related context.
 
     Args:
@@ -35,7 +35,7 @@ class MeLLM(LiteLLMMixin):
     _splitter: TextSplitter = None
     db: Chroma = None
 
-    _CHROMA_COLLECTION_NAME = "mellm"
+    _CHROMA_COLLECTION_NAME = "clonellm"
 
     def __init__(
         self,
@@ -94,7 +94,7 @@ class MeLLM(LiteLLMMixin):
 
     def _check_is_fitted(self, from_update: bool = False):
         if not self.__is_fitted or self.db is None or ((self._splitter is None) if from_update else False):
-            raise AttributeError("This MeLLM instance is not fitted yet. Call `fit` using this method.")
+            raise AttributeError("This CloneLLM instance is not fitted yet. Call `fit` using this method.")
 
     def update(
         self,
@@ -147,4 +147,4 @@ class MeLLM(LiteLLMMixin):
         return await rag_chain.ainvoke(prompt)
 
     def __repr__(self) -> str:
-        return f"MeLLM<(model='{self.model})>"
+        return f"CloneLLM<(model='{self.model})>"
