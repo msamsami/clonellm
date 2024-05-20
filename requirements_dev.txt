@@ -1,0 +1,7 @@
+litellm>=1.36.0
+langchain>=0.1.17
+langchain-chroma
+pytest
+mypy
+pytest-asyncio
+ruff>=0.4,<0.5
