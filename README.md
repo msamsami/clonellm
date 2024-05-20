@@ -15,5 +15,5 @@ TBA...
 - [ ] Add initial version of README
 - [ ] Add usage examples
 - [ ] Add initial unit tests
-- [ ] Add GitHub workflow to run tests on PR
+- [x] Add GitHub workflow to run tests on PR
 - [ ] Add GitHub workflow to publish to PyPI on release
