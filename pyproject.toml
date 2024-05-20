@@ -31,6 +31,9 @@ disable_error_code = ["empty-body"]
 disallow_untyped_defs = false
 strict = true
 
+[tool.pytest.ini_options]
+filterwarnings = ["ignore"]
+
 [tool.ruff]
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
 line-length=130
