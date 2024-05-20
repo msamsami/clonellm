@@ -1,6 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-__all__ = ("context_prompt", "user_profile_prompt", "history_prompt", "question_prompt")
+__all__ = ("context_prompt", "user_profile_prompt", "contextualize_question_prompt", "history_prompt", "question_prompt")
 
 
 context_prompt = ChatPromptTemplate.from_messages(
@@ -17,13 +17,7 @@ context_prompt = ChatPromptTemplate.from_messages(
             ),
         ),
         ("system", "Here is some relevant context you have related to the question: {context}"),
-        (
-            "system",
-            (
-                "ALWAYS ensure your responses are aligned with the provided context (and personal information). "
-                "AVOID discussing topics unrelated to the provided context."
-            ),
-        ),
+        ("system", "ALWAYS ensure your responses are aligned with the provided context (and personal information)."),
     ]
 )
 
@@ -33,14 +27,27 @@ user_profile_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
+contextualize_question_prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            (
+                "Given a chat history and the latest user question hich might reference context in the chat history, "
+                "formulate a standalone question which can be understood without the chat history. "
+                "Do NOT answer the question, just reformulate it if needed and otherwise return it as is."
+            ),
+        ),
+    ]
+)
+
 history_prompt = ChatPromptTemplate.from_messages(
     [
-        MessagesPlaceholder(variable_name="history"),
+        MessagesPlaceholder(variable_name="chat_history"),
     ]
 )
 
 question_prompt = ChatPromptTemplate.from_messages(
     [
-        ("user", "Question: {question}\nAnswer:\n"),
+        ("human", "Question: {input}"),
     ]
 )

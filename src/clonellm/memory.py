@@ -6,16 +6,14 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 
 _store = {}
 
-__all__ = ("InMemoryHistory", "get_by_session_id")
+__all__ = ("InMemoryHistory", "get_session_history", "clear_session_history")
 
 
 class InMemoryHistory(BaseChatMessageHistory, BaseModel):
     """In memory implementation of chat message history."""
 
     messages: list[BaseMessage] = Field(default_factory=list)
-
-    def __init__(self, memory: int) -> None:
-        self.memory = memory
+    memory: int = -1
 
     def add_messages(self, messages: Sequence[BaseMessage]) -> None:
         """Add a list of messages to the store
@@ -33,7 +31,11 @@ class InMemoryHistory(BaseChatMessageHistory, BaseModel):
         self.messages = []
 
 
-def get_by_session_id(session_id: str) -> BaseChatMessageHistory:
+def get_session_history(session_id: str) -> InMemoryHistory:
     if session_id not in _store:
         _store[session_id] = InMemoryHistory()
     return _store[session_id]
+
+
+def clear_session_history(session_id: str) -> None:
+    _ = _store.pop(session_id, None)

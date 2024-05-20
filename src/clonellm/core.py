@@ -1,20 +1,29 @@
 from __future__ import annotations
 import json
+import logging
 from typing import Optional, Self
 import uuid
 
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.history_aware_retriever import create_history_aware_retriever
+from langchain.chains.retrieval import create_retrieval_chain
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableSequence
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.vectorstores import VectorStoreRetriever
 from langchain_community.chat_models import ChatLiteLLM
 from langchain_community.vectorstores import Chroma
 from langchain.text_splitter import CharacterTextSplitter, TextSplitter
 
 from ._base import LiteLLMMixin
-from ._prompt import context_prompt, user_profile_prompt, question_prompt
+from ._prompt import context_prompt, user_profile_prompt, history_prompt, contextualize_question_prompt, question_prompt
 from ._typing import UserProfile
 from .embed import LiteLLMEmbeddings
+from .memory import get_session_history, clear_session_history
+
+logging.getLogger("langchain_core").setLevel(logging.ERROR)
 
 __all__ = ("CloneLLM",)
 
@@ -27,7 +36,7 @@ class CloneLLM(LiteLLMMixin):
         documents (list[Document]): List of documents related to cloning user to use as context for the language model.
         embedding (LiteLLMEmbeddings | Embeddings): The embedding function to use for RAG.
         user_profile (Optional[UserProfile | dict | str]): The profile of the user to be cloned by the language model. Defaults to None.
-        memory (Optional[int]): Number of messages to include in conversation memory. Defaults to None (or 0) for no memory. -1 means infinite memory.
+        memory (Optional[bool]): Whether to enable the conversation memory (history). Defaults to None for no memory.
         api_key (Optional[str]): The API key to use. Defaults to None.
         **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
@@ -46,7 +55,7 @@ class CloneLLM(LiteLLMMixin):
         documents: list[Document],
         embedding: LiteLLMEmbeddings | Embeddings,
         user_profile: Optional[UserProfile | dict | str] = None,
-        memory: Optional[int] = None,
+        memory: Optional[bool] = None,
         api_key: Optional[str] = None,
         **kwargs,
     ):
@@ -70,7 +79,7 @@ class CloneLLM(LiteLLMMixin):
         model: str,
         embedding: LiteLLMEmbeddings | Embeddings,
         user_profile: Optional[UserProfile | dict | str] = None,
-        memory: Optional[int] = None,
+        memory: Optional[bool] = None,
         api_key: Optional[str] = None,
         **kwargs,
     ):
@@ -133,32 +142,57 @@ class CloneLLM(LiteLLMMixin):
             return json.dumps(self.user_profile)
         return str(self.user_profile)
 
+    def _get_retriever(self) -> VectorStoreRetriever:
+        return self.db.as_retriever(search_kwargs={"k": 1})
+
     def _get_rag_chain(self) -> RunnableSequence:
         prompt = context_prompt.copy()
         if self.user_profile:
             prompt += user_profile_prompt.format_messages(user_profile=self._user_profile)
         prompt += question_prompt
-        return (
-            {"context": self.db.as_retriever(search_kwargs={"k": 1}), "question": RunnablePassthrough()}
-            | prompt
-            | self._llm
-            | StrOutputParser()
-        )
+        return {"context": self._get_retriever(), "input": RunnablePassthrough()} | prompt | self._llm | StrOutputParser()
 
-    def _get_rag_chain_with_history(self) -> RunnableSequence: ...
+    def _get_rag_chain_with_history(self) -> RunnableWithMessageHistory:
+        contextualize_system_prompt = contextualize_question_prompt + history_prompt + question_prompt
+        history_aware_retriever = create_history_aware_retriever(self._llm, self._get_retriever(), contextualize_system_prompt)
+
+        prompt = context_prompt
+        if self.user_profile:
+            prompt += user_profile_prompt.format_messages(user_profile=self._user_profile)
+        prompt += history_prompt
+        prompt += question_prompt
+        question_answer_chain = create_stuff_documents_chain(self._llm, prompt)
+
+        rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
+        return RunnableWithMessageHistory(
+            rag_chain,
+            get_session_history,
+            input_messages_key="input",
+            history_messages_key="chat_history",
+            output_messages_key="answer",
+            output_parser=StrOutputParser(),
+        )
 
     def completion(self, prompt: str) -> str:
         self._check_is_fitted()
+        if self.memory:
+            rag_chain = self._get_rag_chain_with_history()
+            return rag_chain.invoke({"input": prompt}, config={"configurable": {"session_id": self._session_id}})["answer"]
         rag_chain = self._get_rag_chain()
         return rag_chain.invoke(prompt)
 
     async def acompletion(self, prompt: str) -> str:
         self._check_is_fitted()
+        if self.memory:
+            rag_chain = self._get_rag_chain_with_history()
+            response = await rag_chain.ainvoke({"input": prompt}, config={"configurable": {"session_id": self._session_id}})
+            return response["answer"]
         rag_chain = self._get_rag_chain()
         return await rag_chain.ainvoke(prompt)
 
     def clear_memory(self):
+        clear_session_history(self._session_id)
         self._session_id = str(uuid.uuid4())
 
     def __repr__(self) -> str:
-        return f"CloneLLM<(model='{self.model})>"
+        return f"CloneLLM<(model='{self.model}', memory='{self.memory}')>"
