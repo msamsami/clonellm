@@ -81,4 +81,9 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
         return all_embedding_models
 
     def __repr__(self) -> str:
-        return f"LiteLLMEmbeddings<(model='{self.model}')"
+        return (
+            "LiteLLMEmbeddings<("
+            + f"model='{self.model}'"
+            + (f", dimensions={self.dimensions}" if self.dimensions else "")
+            + ")>"
+        )

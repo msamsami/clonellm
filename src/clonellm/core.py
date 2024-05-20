@@ -95,7 +95,7 @@ class CloneLLM(LiteLLMMixin):
         documents_ = []
         for i, doc in enumerate(documents or self.documents):
             if not isinstance(doc, (Document, str)):
-                raise ValueError(f"item at index {i} is not a valid Document nor a string")
+                raise ValueError(f"item at index {i} is not a valid Document or a string")
             documents_.append(Document(page_content=doc) if isinstance(doc, str) else doc)
         return documents_
 
@@ -145,8 +145,8 @@ class CloneLLM(LiteLLMMixin):
             return json.dumps(self.user_profile)
         return str(self.user_profile)
 
-    def _get_retriever(self) -> VectorStoreRetriever:
-        return self.db.as_retriever(search_kwargs={"k": 1})
+    def _get_retriever(self, k: int = 1) -> VectorStoreRetriever:
+        return self.db.as_retriever(search_kwargs={"k": k})
 
     def _get_rag_chain(self) -> RunnableSequence:
         prompt = context_prompt.copy()
