@@ -7,6 +7,7 @@ import uuid
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain.chains.retrieval import create_retrieval_chain
+from langchain.text_splitter import CharacterTextSplitter, TextSplitter
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.output_parsers import StrOutputParser
@@ -15,7 +16,6 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.vectorstores import VectorStoreRetriever
 from langchain_community.chat_models import ChatLiteLLM
 from langchain_community.vectorstores import Chroma
-from langchain.text_splitter import CharacterTextSplitter, TextSplitter
 
 from ._base import LiteLLMMixin
 from ._prompt import context_prompt, user_profile_prompt, history_prompt, contextualize_question_prompt, question_prompt
@@ -33,7 +33,7 @@ class CloneLLM(LiteLLMMixin):
 
     Args:
         model (str): The name of the language model to use for text completion.
-        documents (list[Document]): List of documents related to cloning user to use as context for the language model.
+        documents (list[Document | str]): List of documents related to cloning user to use as context for the language model.
         embedding (LiteLLMEmbeddings | Embeddings): The embedding function to use for RAG.
         user_profile (Optional[UserProfile | dict | str]): The profile of the user to be cloned by the language model. Defaults to None.
         memory (Optional[bool]): Whether to enable the conversation memory (history). Defaults to None for no memory.
@@ -52,7 +52,7 @@ class CloneLLM(LiteLLMMixin):
     def __init__(
         self,
         model: str,
-        documents: list[Document],
+        documents: list[Document | str],
         embedding: LiteLLMEmbeddings | Embeddings,
         user_profile: Optional[UserProfile | dict | str] = None,
         memory: Optional[bool] = None,
@@ -91,21 +91,24 @@ class CloneLLM(LiteLLMMixin):
             model=model, documents=None, embedding=embedding, user_profile=user_profile, memory=memory, api_key=api_key, **kwargs
         )
 
-    def _check_documents(self, documents: Optional[list[Document]] = None):
+    def _get_documents(self, documents: Optional[list[Document | str]] = None) -> list[Document]:
+        documents_ = []
         for i, doc in enumerate(documents or self.documents):
-            if not isinstance(doc, Document):
-                raise ValueError(f"document at index {i} is not a valid Document")
+            if not isinstance(doc, (Document, str)):
+                raise ValueError(f"item at index {i} is not a valid Document nor a string")
+            documents_.append(Document(page_content=doc) if isinstance(doc, str) else doc)
+        return documents_
 
     def fit(self) -> Self:
-        self._check_documents()
-        documents = self._splitter.split_documents(self.documents)
+        documents = self._get_documents()
+        documents = self._splitter.split_documents(documents)
         self.db = Chroma.from_documents(documents, self.embedding, collection_name=self._CHROMA_COLLECTION_NAME)
         self.__is_fitted = True
         return self
 
     async def afit(self) -> Self:
-        self._check_documents()
-        documents = self._splitter.split_documents(self.documents)
+        documents = self._get_documents()
+        documents = self._splitter.split_documents(documents)
         self.db = await Chroma.afrom_documents(documents, self.embedding, collection_name=self._CHROMA_COLLECTION_NAME)
         self.__is_fitted = True
         return self
@@ -116,21 +119,21 @@ class CloneLLM(LiteLLMMixin):
 
     def update(
         self,
-        documents: list[Document],
+        documents: list[Document | str],
     ) -> Self:
         self._check_is_fitted(from_update=True)
-        self._check_documents(documents)
-        documents = self._splitter.split_documents(self.documents)
+        documents = self._get_documents(documents)
+        documents = self._splitter.split_documents(documents)
         self.db.add_documents(documents)
         return self
 
     async def aupdate(
         self,
-        documents: list[Document],
+        documents: list[Document | str],
     ) -> Self:
         self._check_is_fitted(from_update=True)
-        self._check_documents(documents)
-        documents = self._splitter.split_documents(self.documents)
+        documents = self._get_documents(documents)
+        documents = self._splitter.split_documents(documents)
         await self.db.aadd_documents(documents)
         return self
 
