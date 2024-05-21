@@ -11,6 +11,7 @@ TBA...
 - [x] Add support for conversation history
 - [ ] Add support for RAG with no embedding (ingest the entire context into the prompt)
 - [x] Add support for string documents
+- [x] Fix mypy errors
 - [ ] Add support for custom system prompts
 - [ ] Add initial version of README
 - [ ] Add usage examples
