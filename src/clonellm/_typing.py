@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -12,13 +12,15 @@ class UserProfile(BaseModel):
     last_name: str
     preferred_name: Optional[str] = None
     prefix: Optional[str] = None
-    birth_date: Optional[datetime.date] = None
+    birth_date: Optional[datetime.date | str] = None
     gender: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
     country: Optional[str] = None
     phone_number: Optional[str] = None
     email: Optional[str] = None
+    education_experience: Optional[dict[str, Any]] = None
+    work_experience: Optional[dict[str, Any]] = None
     expertise: Optional[list[str]] = None
     home_page: Optional[str] = None
     github_page: Optional[str] = None
@@ -30,4 +32,4 @@ class UserProfile(BaseModel):
 
     @property
     def age(self) -> Optional[int]:
-        return (datetime.date.today() - self.birth_date).days // 365 if self.birth_date else None
+        return (datetime.date.today() - self.birth_date).days // 365 if isinstance(self.birth_date, datetime.date) else None
