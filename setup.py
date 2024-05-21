@@ -2,7 +2,7 @@ import codecs
 from os import path
 from setuptools import setup, find_packages
 
-from src.clonellm import __version__
+from clonellm import __version__
 
 requirements = [s.replace("\n", "").strip() for s in open("requirements.txt").read()]
 
@@ -35,5 +35,5 @@ setup(
     ],
     python_requires=">=3.9,<3.13",
     install_requires=requirements,
-    extras_require={"dev": ["pytest", "mypy", "pytest-asyncio", "ruff>=0.4,<0.5"]},
+    extras_require={"dev": ["pytest", "mypy", "pytest-asyncio", "ruff>=0.4,<0.5", "types-setuptools>=69.0.0.20240106,<70.0.0"]},
 )

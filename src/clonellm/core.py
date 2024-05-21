@@ -1,7 +1,8 @@
 from __future__ import annotations
 import json
 import logging
-from typing import Optional, Self
+from typing import Any, Optional
+from typing_extensions import Self
 import uuid
 
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -11,7 +12,7 @@ from langchain.text_splitter import CharacterTextSplitter, TextSplitter
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough, RunnableSequence
+from langchain_core.runnables import RunnablePassthrough, RunnableSerializable
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.vectorstores import VectorStoreRetriever
 from langchain_community.chat_models import ChatLiteLLM
@@ -35,7 +36,7 @@ class CloneLLM(LiteLLMMixin):
         model (str): The name of the language model to use for text completion.
         documents (list[Document | str]): List of documents related to cloning user to use as context for the language model.
         embedding (LiteLLMEmbeddings | Embeddings): The embedding function to use for RAG.
-        user_profile (Optional[UserProfile | dict | str]): The profile of the user to be cloned by the language model. Defaults to None.
+        user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
         memory (Optional[bool]): Whether to enable the conversation memory (history). Defaults to None for no memory.
         api_key (Optional[str]): The API key to use. Defaults to None.
         **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
@@ -43,9 +44,9 @@ class CloneLLM(LiteLLMMixin):
     """
 
     __is_fitted: bool = False
-    _splitter: TextSplitter = None
-    _session_id: str = None
-    db: Chroma = None
+    _splitter: TextSplitter
+    _session_id: str
+    db: Chroma
 
     _CHROMA_COLLECTION_NAME = "clonellm"
 
@@ -54,11 +55,11 @@ class CloneLLM(LiteLLMMixin):
         model: str,
         documents: list[Document | str],
         embedding: LiteLLMEmbeddings | Embeddings,
-        user_profile: Optional[UserProfile | dict | str] = None,
+        user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
         memory: Optional[bool] = None,
         api_key: Optional[str] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         super().__init__(model, api_key, **kwargs)
         self.embedding = embedding
         self.documents = documents
@@ -66,10 +67,11 @@ class CloneLLM(LiteLLMMixin):
         self.memory = memory
         self._internal_init()
 
-    def _internal_init(self):
-        api_key_kwarg = {f"{self._llm_provider}_api_key": self.api_key}
-        self._llm = ChatLiteLLM(model=self.model, model_name=self.model, **api_key_kwarg, **self._litellm_kwargs)
+    def _internal_init(self) -> None:
+        self._litellm_kwargs.update({f"{self._llm_provider}_api_key": self.api_key})
+        self._llm = ChatLiteLLM(model=self.model, model_name=self.model, **self._litellm_kwargs)
         self._splitter = CharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
+        self._session_id = str(uuid.uuid4())
         self.clear_memory()
 
     @classmethod
@@ -78,24 +80,24 @@ class CloneLLM(LiteLLMMixin):
         persist_directory: str,
         model: str,
         embedding: LiteLLMEmbeddings | Embeddings,
-        user_profile: Optional[UserProfile | dict | str] = None,
+        user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
         memory: Optional[bool] = None,
         api_key: Optional[str] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> Self:
         cls.db = Chroma(
             collection_name=cls._CHROMA_COLLECTION_NAME, embedding_function=embedding, persist_directory=persist_directory
         )
         cls.__is_fitted = True
         return cls(
-            model=model, documents=None, embedding=embedding, user_profile=user_profile, memory=memory, api_key=api_key, **kwargs
+            model=model, documents=[], embedding=embedding, user_profile=user_profile, memory=memory, api_key=api_key, **kwargs
         )
 
     def _get_documents(self, documents: Optional[list[Document | str]] = None) -> list[Document]:
         documents_ = []
         for i, doc in enumerate(documents or self.documents):
             if not isinstance(doc, (Document, str)):
-                raise ValueError(f"item at index {i} is not a valid Document nor a string")
+                raise ValueError(f"item at index {i} is not a valid Document or a string")
             documents_.append(Document(page_content=doc) if isinstance(doc, str) else doc)
         return documents_
 
@@ -113,7 +115,7 @@ class CloneLLM(LiteLLMMixin):
         self.__is_fitted = True
         return self
 
-    def _check_is_fitted(self, from_update: bool = False):
+    def _check_is_fitted(self, from_update: bool = False) -> None:
         if not self.__is_fitted or self.db is None or ((self._splitter is None) if from_update else False):
             raise AttributeError("This CloneLLM instance is not fitted yet. Call `fit` using this method.")
 
@@ -122,9 +124,9 @@ class CloneLLM(LiteLLMMixin):
         documents: list[Document | str],
     ) -> Self:
         self._check_is_fitted(from_update=True)
-        documents = self._get_documents(documents)
-        documents = self._splitter.split_documents(documents)
-        self.db.add_documents(documents)
+        documents_ = self._get_documents(documents)
+        documents_ = self._splitter.split_documents(documents_)
+        self.db.add_documents(documents_)
         return self
 
     async def aupdate(
@@ -132,23 +134,23 @@ class CloneLLM(LiteLLMMixin):
         documents: list[Document | str],
     ) -> Self:
         self._check_is_fitted(from_update=True)
-        documents = self._get_documents(documents)
-        documents = self._splitter.split_documents(documents)
-        await self.db.aadd_documents(documents)
+        documents_ = self._get_documents(documents)
+        documents_ = self._splitter.split_documents(documents_)
+        await self.db.aadd_documents(documents_)
         return self
 
     @property
     def _user_profile(self) -> str:
         if isinstance(self.user_profile, UserProfile):
-            return self.user_profile.model_dump_json()
+            return self.user_profile.model_dump_json(exclude_none=True)
         elif isinstance(self.user_profile, dict):
-            return json.dumps(self.user_profile)
+            return json.dumps(self.user_profile, default=str)
         return str(self.user_profile)
 
-    def _get_retriever(self) -> VectorStoreRetriever:
-        return self.db.as_retriever(search_kwargs={"k": 1})
+    def _get_retriever(self, k: int = 1) -> VectorStoreRetriever:
+        return self.db.as_retriever(search_kwargs={"k": k})
 
-    def _get_rag_chain(self) -> RunnableSequence:
+    def _get_rag_chain(self) -> RunnableSerializable[Any, str]:
         prompt = context_prompt.copy()
         if self.user_profile:
             prompt += user_profile_prompt.format_messages(user_profile=self._user_profile)
@@ -179,21 +181,24 @@ class CloneLLM(LiteLLMMixin):
     def completion(self, prompt: str) -> str:
         self._check_is_fitted()
         if self.memory:
-            rag_chain = self._get_rag_chain_with_history()
-            return rag_chain.invoke({"input": prompt}, config={"configurable": {"session_id": self._session_id}})["answer"]
+            rag_chain_with_history = self._get_rag_chain_with_history()
+            response = rag_chain_with_history.invoke({"input": prompt}, config={"configurable": {"session_id": self._session_id}})
+            return response["answer"]  # type: ignore[no-any-return]
         rag_chain = self._get_rag_chain()
         return rag_chain.invoke(prompt)
 
     async def acompletion(self, prompt: str) -> str:
         self._check_is_fitted()
         if self.memory:
-            rag_chain = self._get_rag_chain_with_history()
-            response = await rag_chain.ainvoke({"input": prompt}, config={"configurable": {"session_id": self._session_id}})
-            return response["answer"]
+            rag_chain_with_history = self._get_rag_chain_with_history()
+            response = await rag_chain_with_history.ainvoke(
+                {"input": prompt}, config={"configurable": {"session_id": self._session_id}}
+            )
+            return response["answer"]  # type: ignore[no-any-return]
         rag_chain = self._get_rag_chain()
         return await rag_chain.ainvoke(prompt)
 
-    def clear_memory(self):
+    def clear_memory(self) -> None:
         clear_session_history(self._session_id)
         self._session_id = str(uuid.uuid4())
 

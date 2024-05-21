@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, cast, Optional
 
 from langchain_core.embeddings import Embeddings
 from litellm import embedding, aembedding, all_embedding_models
@@ -19,7 +19,7 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
 
     """
 
-    def __init__(self, model: str, api_key: Optional[str] = None, dimensions: Optional[int] = None, **kwargs):
+    def __init__(self, model: str, api_key: Optional[str] = None, dimensions: Optional[int] = None, **kwargs: Any) -> None:
         super().__init__(model, api_key, **kwargs)
         self.dimensions = dimensions
 
@@ -78,7 +78,12 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
         """
         Returns the names of supported embedding models.
         """
-        return all_embedding_models
+        return cast(list[str], all_embedding_models)
 
     def __repr__(self) -> str:
-        return f"LiteLLMEmbeddings<(model='{self.model}')"
+        return (
+            "LiteLLMEmbeddings<("
+            + f"model='{self.model}'"
+            + (f", dimensions={self.dimensions}" if self.dimensions else "")
+            + ")>"
+        )
