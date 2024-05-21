@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from typing import Sequence
 
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import BaseMessage
