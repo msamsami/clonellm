@@ -5,3 +5,4 @@ pytest
 mypy
 pytest-asyncio
 ruff>=0.4,<0.5
+types-setuptools>=69.0.0.20240106,<70.0.0

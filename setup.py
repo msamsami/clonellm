@@ -35,5 +35,5 @@ setup(
     ],
     python_requires=">=3.9,<3.13",
     install_requires=requirements,
-    extras_require={"dev": ["pytest", "mypy", "pytest-asyncio", "ruff>=0.4,<0.5", "types-setuptools>=69.5.0,<70.0.0"]},
+    extras_require={"dev": ["pytest", "mypy", "pytest-asyncio", "ruff>=0.4,<0.5", "types-setuptools>=69.0.0.20240106,<70.0.0"]},
 )
