@@ -1,7 +1,8 @@
 from __future__ import annotations
 import json
 import logging
-from typing import Any, Optional, Self
+from typing import Any, Optional
+from typing_extensions import Self
 import uuid
 
 from langchain.chains.combine_documents import create_stuff_documents_chain
