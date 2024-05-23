@@ -243,4 +243,4 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [ ] Add usage examples
 - [ ] Add initial unit tests
 - [x] Add GitHub workflow to run tests on PR
-- [ ] Add GitHub workflow to publish to PyPI on release
+- [x] Add GitHub workflow to publish to PyPI on release
