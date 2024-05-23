@@ -1,7 +1,10 @@
-<p align="center">
-    <img src="docs/assets/images/logo.png" alt="Logo" width="275" />
-</p>
-<h1 align="center">CloneLLM</h1>
+<h1 align="center">
+    CloneLLM
+    <p align="center">
+        <img src="docs/assets/images/logo.png" alt="Logo" width="250" />
+    </p>
+</h1>
+
 <p align="center">
     <p align="center">Create an AI clone of yourself using LLMs</p>
 </p>   
@@ -57,7 +60,7 @@ pip install .
 
 ### Getting started
 
-Step 1. Gather documents that contain relavant information about you. These documents form the base from which your AI clone will learn to mimic your tone, style, and expertise.
+**Step 1**. Gather documents that contain relavant information about you. These documents form the base from which your AI clone will learn to mimic your tone, style, and expertise.
 ```python
 from langchain_core.documents import Document
 
@@ -67,7 +70,7 @@ documents = [
 ]
 ```
 
-Step 2. Initialize an embedding model using CloneLLM's `LiteLLMEmbeddings` or any other Langchain's embeddings. Then, initialize a clone with your documents, embedding model, and your referred LLM.
+**Step 2**. Initialize an embedding model using CloneLLM's `LiteLLMEmbeddings` or any other Langchain's embeddings. Then, initialize a clone with your documents, embedding model, and your referred LLM.
 ```python
 from clonellm import CloneLLM, LiteLLMEmbeddings
 
@@ -75,17 +78,17 @@ embedding = LiteLLMEmbeddings(model="text-embedding-ada-002")
 clone = CloneLLM(model="gpt-4-turbo", documents=documents, embedding=embedding)
 ```
 
-Step 3: Configure environment variables to store API keys for embedding and LLM models.
+**Step 3**. Configure environment variables to store API keys for embedding and LLM models.
 ```bash
 export OPENAI_API_KEY=sk-...
 ```
 
-Step 4. Fit the clone to the data (documents).
+**Step 4**. Fit the clone to the data (documents).
 ```python
 clone.fit()
 ```
 
-Step 5. Use completion to ask questions.
+**Step 5**. Use completion to ask questions.
 ```python
 clone.completion("What's your name?")
 
@@ -236,7 +239,8 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [x] Fix mypy errors
 - [ ] Add support for streaming completion
 - [ ] Add support for custom system prompts
-- [ ] Add initial version of README
+- [x] Add initial version of README
+- [ ] Add documents
 - [ ] Add usage examples
 - [ ] Add initial unit tests
 - [x] Add GitHub workflow to run tests on PR
