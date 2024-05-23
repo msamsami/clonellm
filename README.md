@@ -1,12 +1,11 @@
+<p align="center">
+    <img src="docs/assets/images/logo.png" alt="Logo" width="250" />
+</p>
 <h1 align="center">
     CloneLLM
-    <p align="center">
-        <img src="docs/assets/images/logo.png" alt="Logo" width="250" />
-    </p>
 </h1>
-
 <p align="center">
-    <p align="center">Create an AI clone of yourself using LLMs</p>
+    <p align="center">Create an AI clone of yourself using LLMs.</p>
 </p>   
 
 <h4 align="center">
