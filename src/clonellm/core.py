@@ -203,4 +203,4 @@ class CloneLLM(LiteLLMMixin):
         self._session_id = str(uuid.uuid4())
 
     def __repr__(self) -> str:
-        return f"CloneLLM<(model='{self.model}', memory='{self.memory}')>"
+        return f"CloneLLM<(model='{self.model}', memory={self.memory})>"

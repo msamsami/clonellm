@@ -46,6 +46,9 @@ filterwarnings = ["ignore"]
 
 [tool.ruff]
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
-line-length=130
+line-length = 130
 # Use `ruff linter` to list available linters
 # https://beta.ruff.rs/docs/rules/
+
+[tool.black]
+line-length = 130
