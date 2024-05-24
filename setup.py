@@ -10,7 +10,7 @@ requirements = [s.replace("\n", "").strip() for s in open("requirements.txt").re
 setup(
     name="clonellm",
     version=__version__,
-    description="Python package to create an AI clone of yourself using LLMs",
+    description="Python package to create an AI clone of yourself using LLMs.",
     keywords=["llm", "language models", "nlp", "rag", "ai", "ai clone"],
     author="Mehdi Samsami",
     author_email="mehdisamsami@live.com",

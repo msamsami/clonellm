@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="docs/assets/images/logo.png" alt="Logo" width="250" />
+    <img src="https://raw.githubusercontent.com/msamsami/clonellm/main/docs/assets/images/logo.png" alt="Logo" width="250" />
 </p>
 <h1 align="center">
     CloneLLM
@@ -10,7 +10,7 @@
 
 <h4 align="center">
     <a href="https://pypi.org/project/clonellm/" target="_blank">
-        <img src="https://img.shields.io/badge/release-v0.0.1-green" alt="Latest Release">
+        <img src="https://img.shields.io/badge/release-v0.0.2-green" alt="Latest Release">
     </a>
     <a href="https://pypi.org/project/clonellm/" target="_blank">
         <img src="https://img.shields.io/pypi/v/clonellm.svg" alt="PyPI Version">
@@ -69,7 +69,7 @@ documents = [
 ]
 ```
 
-**Step 2**. Initialize an embedding model using CloneLLM's `LiteLLMEmbeddings` or any other Langchain's embeddings. Then, initialize a clone with your documents, embedding model, and your referred LLM.
+**Step 2**. Initialize an embedding model using CloneLLM's `LiteLLMEmbeddings` or Langchain's embeddings. Then, initialize a clone with your documents, embedding model, and your referred LLM.
 ```python
 from clonellm import CloneLLM, LiteLLMEmbeddings
 
@@ -87,9 +87,9 @@ export OPENAI_API_KEY=sk-...
 clone.fit()
 ```
 
-**Step 5**. Use completion to ask questions.
+**Step 5**. Invoke the clone to ask questions.
 ```python
-clone.completion("What's your name?")
+clone.invoke("What's your name?")
 
 # Response: My name is Mehdi Samsami. How can I help you?
 ```
@@ -103,7 +103,7 @@ You can use Langchain's document loaders to seamlessly import data from various 
 # !pip install unstructured
 from langchain_community.document_loaders import TextLoader, UnstructuredHTMLLoader
 
-documents = TextLoader("cv.txt").load() UnstructuredHTMLLoader("linkedin.html").load()
+documents = TextLoader("cv.txt").load() + UnstructuredHTMLLoader("linkedin.html").load()
 ```
 
 Or JSON loader:
@@ -119,16 +119,16 @@ documents = JSONLoader(
 ```
 
 ### Embeddings
-With LiteLLMEmbeddings, CloneLLM allows you to utilize embedding models from a variety of providers supported by LiteLLM. Additionally, you can select any preferred embedding model from Langchain's extensive range. Take, for example, the Hugging Face embedding:
+With `LiteLLMEmbeddings`, CloneLLM allows you to utilize embedding models from a variety of providers supported by LiteLLM. Additionally, you can select any preferred embedding model from Langchain's extensive range. Take, for example, the Hugging Face embedding:
 ```python
 # !pip install --upgrade --quiet sentence_transformers
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from clonellm import CloneLLM
 import os
 
-# os.environ["COHERE_API_KEY"] = "cohere-api-key"
+os.environ["COHERE_API_KEY"] = "cohere-api-key"
 
-embedding = HuggingFaceEmbeddings()
+embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 clone = CloneLLM(model="command-xlarge-beta", documents=documents, embedding=embedding)
 ```
 
@@ -137,9 +137,12 @@ Or, the Llama-cpp embedding:
 # !pip install --upgrade --quiet llama-cpp-python
 from langchain_community.embeddings import LlamaCppEmbeddings
 from clonellm import CloneLLM
+import os
+
+os.environ["OPENAI_API_KEY"] = "openai-api-key"
 
 embedding = LlamaCppEmbeddings(model_path="ggml-model-q4_0.bin")
-clone = CloneLLM(model="gpt-4-turbo", documents=documents, embedding=embedding)
+clone = CloneLLM(model="gpt-3.5-turbo", documents=documents, embedding=embedding)
 ```
 
 ### User profile
@@ -166,12 +169,12 @@ profile = {
 }
 ```
 
-And finnaly:
+Finnaly:
 ```python
 from clonellm import CloneLLM
 import os
 
-# os.environ["ANTHROPIC_API_KEY"] = "anthropic-api-key"
+os.environ["ANTHROPIC_API_KEY"] = "anthropic-api-key"
 
 clone = CloneLLM(
     model="claude-3-opus-20240229",
@@ -181,13 +184,13 @@ clone = CloneLLM(
 )
 ```
 
-## Conversation history (memory)
+### Conversation history (memory)
 Enable the memory feature to allow your clone to retain a history of past interactions. This "memory" helps the clone to deliver contextually aware responses by referencing previous dialogues. This is simply done by setting `memory` to True when initializing the clone:
 ```python
 from clonellm import CloneLLM
 import os
 
-# os.environ["HUGGINGFACE_API_KEY"] = "huggingface-api-key"
+os.environ["HUGGINGFACE_API_KEY"] = "huggingface-api-key"
 
 clone = CloneLLM(
     model="meta-llama/Llama-2-70b-chat",
@@ -197,35 +200,73 @@ clone = CloneLLM(
 )
 ```
 
-### Async
-CloneLLM provides asynchronous counterparts to its core methods, enhancing performance in asynchronous programming contexts.
+### Streaming
+CloneLLM supports streaming responses from the LLM, allowing for real-time processing of text as it is being generated, rather than receiving the whole output at once.
+```python
+from clonellm import CloneLLM, LiteLLMEmbeddings
+import os
 
+os.environ["VERTEXAI_PROJECT"] = "hardy-device-28813"
+os.environ["VERTEXAI_LOCATION"] = "us-central1"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "path/to/your/credentials.json"
+
+embedding = LiteLLMEmbeddings(model="textembedding-gecko@001")
+clone = CloneLLM(model="gemini-1.0-pro", documents=documents, embedding=embedding)
+
+for chunk in clone.stream("Describe yourself in 100 words"):
+    print(chunk, end="", flush=True)
+```
+
+### Async
+CloneLLM provides asynchronous counterparts to its core methods, `afit`, `ainvoke`, and `astream`, enhancing performance in asynchronous programming contexts.
+
+#### `ainvoke`
 ```python
 import asyncio
 from clonellm import CloneLLM, LiteLLMEmbeddings
 from langchain_core.documents import Document
 import os
 
-# os.environ["OPENAI_API_KEY"] = "openai-api-key"
+os.environ["OPENAI_API_KEY"] = "openai-api-key"
 
 async def main():
-    documents = [Document(page_content="My name is Mehdi Samsami."), open("cv.txt", "r").read()]
+    documents = [...]
     embedding = LiteLLMEmbeddings(model="text-embedding-ada-002")
     clone = CloneLLM(model="gpt-4o", documents=documents, embedding=embedding)
     await clone.afit()
-    response = await clone.acompletion("Tell me about your skills?")
+    response = await clone.ainvoke("Tell me about your skills?")
     return response
 
 response = asyncio.run(main())
 print(response)
 ```
 
+#### `astream`
+```python
+import asyncio
+from clonellm import CloneLLM, LiteLLMEmbeddings
+from langchain_core.documents import Document
+import os
+
+os.environ["OPENAI_API_KEY"] = "openai-api-key"
+
+async def main():
+    documents = [...]
+    embedding = LiteLLMEmbeddings(model="text-embedding-3-small")
+    clone = CloneLLM(model="gpt-4o", documents=documents, embedding=embedding)
+    await clone.afit()
+    async for chunk in clone.astream("How comfortable are you with remote work?"):
+        print(chunk, end="", flush=True)
+
+asyncio.run(main())
+```
+
 ## Support Us
 If you find CloneLLM useful, please consider showing your support in one of the following ways:
 
-- **Star our GitHub repository:** This helps increase the visibility of our project.
-- **Contribute:** Submit pull requests to help improve the codebase, whether it's adding new features, fixing bugs, or improving documentation.
-- **Share:** Post about CloneLLM on LinkedIn or other social platforms.
+- ⭐ **Star our GitHub repository:** This helps increase the visibility of our project.
+- 💡 **Contribute:** Submit pull requests to help improve the codebase, whether it's adding new features, fixing bugs, or improving documentation.
+- 📰 **Share:** Post about CloneLLM on LinkedIn or other social platforms.
 
 Thank you for your interest in CloneLLM. We look forward to seeing what you'll create with your AI clone!
 
@@ -236,8 +277,10 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [ ] Add support for RAG with no embedding (ingest the entire context into the prompt)
 - [x] Add support for string documents
 - [x] Fix mypy errors
-- [ ] Add support for streaming completion
+- [x] Rename `completion` methods to `invoke`
+- [x] Add support for streaming completion
 - [ ] Add support for custom system prompts
+- [ ] Add an attribute to return supported models
 - [x] Add initial version of README
 - [ ] Add documents
 - [ ] Add usage examples

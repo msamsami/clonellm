@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
 import logging
-from typing import Any, Optional
+from typing import Any, AsyncIterator, Iterator, Optional
 from typing_extensions import Self
 import uuid
 
@@ -178,7 +178,7 @@ class CloneLLM(LiteLLMMixin):
             output_parser=StrOutputParser(),
         )
 
-    def completion(self, prompt: str) -> str:
+    def invoke(self, prompt: str) -> str:
         self._check_is_fitted()
         if self.memory:
             rag_chain_with_history = self._get_rag_chain_with_history()
@@ -187,7 +187,7 @@ class CloneLLM(LiteLLMMixin):
         rag_chain = self._get_rag_chain()
         return rag_chain.invoke(prompt)
 
-    async def acompletion(self, prompt: str) -> str:
+    async def ainvoke(self, prompt: str) -> str:
         self._check_is_fitted()
         if self.memory:
             rag_chain_with_history = self._get_rag_chain_with_history()
@@ -197,6 +197,32 @@ class CloneLLM(LiteLLMMixin):
             return response["answer"]  # type: ignore[no-any-return]
         rag_chain = self._get_rag_chain()
         return await rag_chain.ainvoke(prompt)
+
+    def stream(self, prompt: str) -> Iterator[str]:
+        self._check_is_fitted()
+        if self.memory:
+            rag_chain_with_history = self._get_rag_chain_with_history()
+            iterator = rag_chain_with_history.stream({"input": prompt}, config={"configurable": {"session_id": self._session_id}})
+            for chunk in iterator:
+                if "answer" in chunk:
+                    yield chunk["answer"]
+                else:
+                    yield ""
+        rag_chain = self._get_rag_chain()
+        for chunk in rag_chain.stream(prompt):
+            yield chunk
+
+    async def astream(self, prompt: str) -> AsyncIterator[str]:
+        self._check_is_fitted()
+        if self.memory:
+            rag_chain_with_history = self._get_rag_chain_with_history()
+            async for chunk in rag_chain_with_history.astream(
+                {"input": prompt}, config={"configurable": {"session_id": self._session_id}}
+            ):
+                yield chunk["answer"]
+        rag_chain = self._get_rag_chain()
+        async for chunk in rag_chain.astream(prompt):
+            yield chunk
 
     def clear_memory(self) -> None:
         clear_session_history(self._session_id)
