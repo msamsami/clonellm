@@ -103,7 +103,7 @@ You can use Langchain's document loaders to seamlessly import data from various 
 # !pip install unstructured
 from langchain_community.document_loaders import TextLoader, UnstructuredHTMLLoader
 
-documents = TextLoader("cv.txt").load() UnstructuredHTMLLoader("linkedin.html").load()
+documents = TextLoader("cv.txt").load() + UnstructuredHTMLLoader("linkedin.html").load()
 ```
 
 Or JSON loader:
@@ -119,7 +119,7 @@ documents = JSONLoader(
 ```
 
 ### Embeddings
-With LiteLLMEmbeddings, CloneLLM allows you to utilize embedding models from a variety of providers supported by LiteLLM. Additionally, you can select any preferred embedding model from Langchain's extensive range. Take, for example, the Hugging Face embedding:
+With `LiteLLMEmbeddings`, CloneLLM allows you to utilize embedding models from a variety of providers supported by LiteLLM. Additionally, you can select any preferred embedding model from Langchain's extensive range. Take, for example, the Hugging Face embedding:
 ```python
 # !pip install --upgrade --quiet sentence_transformers
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -128,7 +128,7 @@ import os
 
 os.environ["COHERE_API_KEY"] = "cohere-api-key"
 
-embedding = HuggingFaceEmbeddings()
+embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 clone = CloneLLM(model="command-xlarge-beta", documents=documents, embedding=embedding)
 ```
 
@@ -137,9 +137,12 @@ Or, the Llama-cpp embedding:
 # !pip install --upgrade --quiet llama-cpp-python
 from langchain_community.embeddings import LlamaCppEmbeddings
 from clonellm import CloneLLM
+import os
+
+os.environ["OPENAI_API_KEY"] = "openai-api-key"
 
 embedding = LlamaCppEmbeddings(model_path="ggml-model-q4_0.bin")
-clone = CloneLLM(model="gpt-4-turbo", documents=documents, embedding=embedding)
+clone = CloneLLM(model="gpt-3.5-turbo", documents=documents, embedding=embedding)
 ```
 
 ### User profile
@@ -197,9 +200,27 @@ clone = CloneLLM(
 )
 ```
 
-### Async
-CloneLLM provides asynchronous counterparts to its core methods, enhancing performance in asynchronous programming contexts.
+### Streaming
+CloneLLM supports streaming responses from the LLM, allowing for real-time processing of text as it is being generated, rather than receiving the whole output at once.
+```python
+from clonellm import CloneLLM, LiteLLMEmbeddings
+import os
 
+os.environ["VERTEXAI_PROJECT"] = "hardy-device-28813"
+os.environ["VERTEXAI_LOCATION"] = "us-central1"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "path/to/your/credentials.json"
+
+embedding = LiteLLMEmbeddings(model="textembedding-gecko@001")
+clone = CloneLLM(model="gemini-1.0-pro", documents=documents, embedding=embedding)
+
+for chunk in clone.stream("Describe yourself in 100 words"):
+    print(chunk, end="", flush=True)
+```
+
+### Async
+CloneLLM provides asynchronous counterparts to its core methods, `afit`, `ainvoke`, and `astream`, enhancing performance in asynchronous programming contexts.
+
+#### `ainvoke`
 ```python
 import asyncio
 from clonellm import CloneLLM, LiteLLMEmbeddings
@@ -209,10 +230,7 @@ import os
 os.environ["OPENAI_API_KEY"] = "openai-api-key"
 
 async def main():
-    documents = [
-        Document(page_content="My name is Mehdi Samsami."),
-        open("cv.txt", "r").read()
-    ]
+    documents = [...]
     embedding = LiteLLMEmbeddings(model="text-embedding-ada-002")
     clone = CloneLLM(model="gpt-4o", documents=documents, embedding=embedding)
     await clone.afit()
@@ -221,6 +239,26 @@ async def main():
 
 response = asyncio.run(main())
 print(response)
+```
+
+#### `astream`
+```python
+import asyncio
+from clonellm import CloneLLM, LiteLLMEmbeddings
+from langchain_core.documents import Document
+import os
+
+os.environ["OPENAI_API_KEY"] = "openai-api-key"
+
+async def main():
+    documents = [...]
+    embedding = LiteLLMEmbeddings(model="text-embedding-3-small")
+    clone = CloneLLM(model="gpt-4o", documents=documents, embedding=embedding)
+    await clone.afit()
+    async for chunk in clone.astream("How comfortable are you with remote work?"):
+        print(chunk, end="", flush=True)
+
+asyncio.run(main())
 ```
 
 ## Support Us
