@@ -264,9 +264,9 @@ asyncio.run(main())
 ## Support Us
 If you find CloneLLM useful, please consider showing your support in one of the following ways:
 
-- **Star our GitHub repository:** This helps increase the visibility of our project.
-- **Contribute:** Submit pull requests to help improve the codebase, whether it's adding new features, fixing bugs, or improving documentation.
-- **Share:** Post about CloneLLM on LinkedIn or other social platforms.
+- ⭐ **Star our GitHub repository:** This helps increase the visibility of our project.
+- 💡 **Contribute:** Submit pull requests to help improve the codebase, whether it's adding new features, fixing bugs, or improving documentation.
+- 📰 **Share:** Post about CloneLLM on LinkedIn or other social platforms.
 
 Thank you for your interest in CloneLLM. We look forward to seeing what you'll create with your AI clone!
 
