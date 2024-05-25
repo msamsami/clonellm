@@ -24,7 +24,7 @@
 </h4>
 
 ## Introduction
-A minimal Python package that enables you to create an AI clone of yourself using LLMs. Built on top of LiteLLM and Langchain, CloneLLM utilizes the Retrieval-Augmented Generation (RAG) to tailor AI responses as if you are answering the questions.
+A minimal Python package that enables you to create an AI clone of yourself using LLMs. Built on top of LiteLLM and LangChain, CloneLLM utilizes the Retrieval-Augmented Generation (RAG) to tailor AI responses as if you are answering the questions.
 
 You can input texts and documents about yourself — including personal information, professional experience, educational background, etc. — which are then embedded into a vector space for dynamic retrieval. This AI clone can act as a virtual assistant or digital representation, capable of handling queries and tasks in a manner that reflects the your own knowledge, tone, style and mannerisms.
 
@@ -69,7 +69,7 @@ documents = [
 ]
 ```
 
-**Step 2**. Initialize an embedding model using CloneLLM's `LiteLLMEmbeddings` or Langchain's embeddings. Then, initialize a clone with your documents, embedding model, and your referred LLM.
+**Step 2**. Initialize an embedding model using CloneLLM's `LiteLLMEmbeddings` or LangChain's embeddings. Then, initialize a clone with your documents, embedding model, and your referred LLM.
 ```python
 from clonellm import CloneLLM, LiteLLMEmbeddings
 
@@ -98,7 +98,7 @@ clone.invoke("What's your name?")
 At its core, CloneLLM utilizes LiteLLM for interactions with various LLMs. This is why you can choose from many different providers (100+ LLMs) supported by LiteLLM, including Bedrock, Azure, OpenAI, Cohere, Anthropic, Ollama, Sagemaker, HuggingFace, Replicate, etc.
 
 ### Document loaders
-You can use Langchain's document loaders to seamlessly import data from various sources into `Document` format. Take, for example, text and HTML loaders:
+You can use LangChain's document loaders to seamlessly import data from various sources into `Document` format. Take, for example, text and HTML loaders:
 ```python
 # !pip install unstructured
 from langchain_community.document_loaders import TextLoader, UnstructuredHTMLLoader
@@ -119,7 +119,7 @@ documents = JSONLoader(
 ```
 
 ### Embeddings
-With `LiteLLMEmbeddings`, CloneLLM allows you to utilize embedding models from a variety of providers supported by LiteLLM. Additionally, you can select any preferred embedding model from Langchain's extensive range. Take, for example, the Hugging Face embedding:
+With `LiteLLMEmbeddings`, CloneLLM allows you to utilize embedding models from a variety of providers supported by LiteLLM. Additionally, you can select any preferred embedding model from LangChain's extensive range. Take, for example, the Hugging Face embedding:
 ```python
 # !pip install --upgrade --quiet sentence_transformers
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -282,6 +282,7 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [ ] Add support for custom system prompts
 - [ ] Add an attribute to return supported models
 - [x] Add initial version of README
+- [ ] Describe `clear_memory` method in README
 - [ ] Add documents
 - [ ] Add usage examples
 - [ ] Add initial unit tests
