@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="docs/assets/images/logo-transparent.png" alt="Logo" width="250" />
+    <img src="https://raw.githubusercontent.com/msamsami/clonellm/main/docs/assets/images/logo.png" alt="Logo" width="250" />
 </p>
 <h1 align="center">
     CloneLLM
