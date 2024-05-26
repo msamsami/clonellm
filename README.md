@@ -280,11 +280,13 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [x] Rename `completion` methods to `invoke`
 - [x] Add support for streaming completion
 - [ ] Add support for custom system prompts
-- [ ] Add an attribute to return supported models
+- [x] Make `LiteLLMEmbeddings.all_embedding_models` a property
+- [ ] Add an attribute to `CloneLLM` to return supported models
 - [x] Add initial version of README
-- [ ] Describe `clear_memory` method in README
+- [ ] Describe `CloneLLM.clear_memory` method in README
 - [ ] Add documents
 - [ ] Add usage examples
-- [ ] Add initial unit tests
+- [x] Add unit tests for non-core modules
+- [ ] Add unit tests for core module
 - [x] Add GitHub workflow to run tests on PR
 - [x] Add GitHub workflow to publish to PyPI on release
