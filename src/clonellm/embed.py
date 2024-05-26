@@ -74,6 +74,7 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
         embeddings = await self.aembed_documents([text])
         return embeddings[0]
 
+    @property
     def all_embedding_models(self) -> list[str]:
         """
         Returns the names of supported embedding models.
