@@ -285,7 +285,7 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [x] Add initial version of README
 - [ ] Describe `CloneLLM.clear_memory` method in README
 - [ ] Add documents
-- [ ] Add usage examples
+- [x] Add usage examples
 - [x] Add unit tests for non-core modules
 - [ ] Add unit tests for core module
 - [x] Add GitHub workflow to run tests on PR

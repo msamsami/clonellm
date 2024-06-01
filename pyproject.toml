@@ -27,7 +27,7 @@ ruff = "^0.4"
 types-setuptools = "^69.0.0.20240106"
 
 [tool.mypy]
-exclude=["tests"]
+exclude=["tests", "examples"]
 namespace_packages = false
 files = ["src/clonellm/**/*.py"]
 check_untyped_defs = true
