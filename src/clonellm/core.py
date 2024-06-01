@@ -1,13 +1,11 @@
 from __future__ import annotations
 import json
 import logging
-from typing import Any, AsyncIterator, Iterator, Optional
+from operator import itemgetter
+from typing import Any, AsyncIterator, cast, Iterator, Optional
 from typing_extensions import Self
 import uuid
 
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains.history_aware_retriever import create_history_aware_retriever
-from langchain.chains.retrieval import create_retrieval_chain
 from langchain.text_splitter import CharacterTextSplitter, TextSplitter
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
@@ -19,7 +17,7 @@ from langchain_community.chat_models import ChatLiteLLM
 from langchain_community.vectorstores import Chroma
 
 from ._base import LiteLLMMixin
-from ._prompt import context_prompt, user_profile_prompt, history_prompt, contextualize_question_prompt, question_prompt
+from ._prompt import context_prompt, user_profile_prompt, history_prompt, question_prompt
 from ._typing import UserProfile
 from .embed import LiteLLMEmbeddings
 from .memory import get_session_history, clear_session_history
@@ -158,23 +156,21 @@ class CloneLLM(LiteLLMMixin):
         return {"context": self._get_retriever(), "input": RunnablePassthrough()} | prompt | self._llm | StrOutputParser()
 
     def _get_rag_chain_with_history(self) -> RunnableWithMessageHistory:
-        contextualize_system_prompt = contextualize_question_prompt + history_prompt + question_prompt
-        history_aware_retriever = create_history_aware_retriever(self._llm, self._get_retriever(), contextualize_system_prompt)
-
         prompt = context_prompt
         if self.user_profile:
             prompt += user_profile_prompt.format_messages(user_profile=self._user_profile)
         prompt += history_prompt
         prompt += question_prompt
-        question_answer_chain = create_stuff_documents_chain(self._llm, prompt)
 
-        rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
+        context = itemgetter("input") | self._get_retriever()
+        first_step = RunnablePassthrough.assign(context=context)
+        rag_chain = first_step | prompt | self._llm | StrOutputParser()
+
         return RunnableWithMessageHistory(
-            rag_chain,
+            rag_chain,  # type: ignore[arg-type]
             get_session_history,
             input_messages_key="input",
             history_messages_key="chat_history",
-            output_messages_key="answer",
             output_parser=StrOutputParser(),
         )
 
@@ -183,7 +179,7 @@ class CloneLLM(LiteLLMMixin):
         if self.memory:
             rag_chain_with_history = self._get_rag_chain_with_history()
             response = rag_chain_with_history.invoke({"input": prompt}, config={"configurable": {"session_id": self._session_id}})
-            return response["answer"]  # type: ignore[no-any-return]
+            return cast(str, response.content)
         rag_chain = self._get_rag_chain()
         return rag_chain.invoke(prompt)
 
@@ -194,7 +190,7 @@ class CloneLLM(LiteLLMMixin):
             response = await rag_chain_with_history.ainvoke(
                 {"input": prompt}, config={"configurable": {"session_id": self._session_id}}
             )
-            return response["answer"]  # type: ignore[no-any-return]
+            return cast(str, response.content)
         rag_chain = self._get_rag_chain()
         return await rag_chain.ainvoke(prompt)
 
@@ -202,15 +198,14 @@ class CloneLLM(LiteLLMMixin):
         self._check_is_fitted()
         if self.memory:
             rag_chain_with_history = self._get_rag_chain_with_history()
-            iterator = rag_chain_with_history.stream({"input": prompt}, config={"configurable": {"session_id": self._session_id}})
-            for chunk in iterator:
-                if "answer" in chunk:
-                    yield chunk["answer"]
-                else:
-                    yield ""
-        rag_chain = self._get_rag_chain()
-        for chunk in rag_chain.stream(prompt):
-            yield chunk
+            for chunk in rag_chain_with_history.stream(
+                {"input": prompt}, config={"configurable": {"session_id": self._session_id}}
+            ):
+                yield chunk.content
+        else:
+            rag_chain = self._get_rag_chain()
+            for chunk in rag_chain.stream(prompt):
+                yield chunk
 
     async def astream(self, prompt: str) -> AsyncIterator[str]:
         self._check_is_fitted()
@@ -219,10 +214,11 @@ class CloneLLM(LiteLLMMixin):
             async for chunk in rag_chain_with_history.astream(
                 {"input": prompt}, config={"configurable": {"session_id": self._session_id}}
             ):
-                yield chunk["answer"]
-        rag_chain = self._get_rag_chain()
-        async for chunk in rag_chain.astream(prompt):
-            yield chunk
+                yield chunk.content
+        else:
+            rag_chain = self._get_rag_chain()
+            async for chunk in rag_chain.astream(prompt):
+                yield chunk
 
     def clear_memory(self) -> None:
         clear_session_history(self._session_id)
