@@ -1,6 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-__all__ = ("context_prompt", "user_profile_prompt", "contextualize_question_prompt", "history_prompt", "question_prompt")
+__all__ = ("context_prompt", "user_profile_prompt", "history_prompt", "question_prompt")
 
 
 context_prompt = ChatPromptTemplate.from_messages(
@@ -24,19 +24,6 @@ context_prompt = ChatPromptTemplate.from_messages(
 user_profile_prompt = ChatPromptTemplate.from_messages(
     [
         ("system", "Here is all the known information about me: {user_profile}"),
-    ]
-)
-
-contextualize_question_prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            (
-                "Given a chat history and the latest user question hich might reference context in the chat history, "
-                "formulate a standalone question which can be understood without the chat history. "
-                "Do NOT answer the question, just reformulate it if needed and otherwise return it as is."
-            ),
-        ),
     ]
 )
 
