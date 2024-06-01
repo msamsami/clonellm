@@ -1,3 +1,4 @@
+from __future__ import annotations
 import datetime
 from typing import Any, Optional
 
@@ -19,9 +20,9 @@ class UserProfile(BaseModel):
     country: Optional[str] = None
     phone_number: Optional[str] = None
     email: Optional[str] = None
-    education_experience: Optional[dict[str, Any]] = None
-    work_experience: Optional[dict[str, Any]] = None
-    expertise: Optional[list[str]] = None
+    education_experience: Optional[dict[str, Any] | list[dict[str, Any]]] = None
+    work_experience: Optional[dict[str, Any] | list[dict[str, Any]]] = None
+    expertise: Optional[list[str] | dict[str, Any]] = None
     home_page: Optional[str] = None
     github_page: Optional[str] = None
     linkedin_page: Optional[str] = None
