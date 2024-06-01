@@ -1,5 +1,5 @@
 __author__ = "Mehdi Samsami"
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 from ._typing import UserProfile
 from .embed import LiteLLMEmbeddings
