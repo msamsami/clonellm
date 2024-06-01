@@ -24,7 +24,7 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
         self.dimensions = dimensions
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        """Call out to LLM's embedding endpoint for embedding search docs.
+        """Call out to LLM's embedding endpoint for embedding a list of documents.
 
         Args:
             texts (list[str]): The list of texts to embed.
@@ -38,7 +38,7 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
         return [r["embedding"] for r in response.data]
 
     async def aembed_documents(self, texts: list[str]) -> list[list[float]]:
-        """Call out to LLM's embedding endpoint async for embedding search docs.
+        """Call out to LLM's embedding endpoint async for embedding a list of documents.
 
         Args:
             texts (list[str]): The list of texts to embed.
