@@ -48,6 +48,7 @@ class CloneLLM(LiteLLMMixin):
     db: Chroma
 
     _CHROMA_COLLECTION_NAME = "clonellm"
+    _TEXT_SPLITTER_CHUNK_SIZE = 2000
 
     def __init__(
         self,
@@ -69,7 +70,7 @@ class CloneLLM(LiteLLMMixin):
     def _internal_init(self) -> None:
         self._litellm_kwargs.update({f"{self._llm_provider}_api_key": self.api_key})
         self._llm = ChatLiteLLM(model=self.model, model_name=self.model, **self._litellm_kwargs)
-        self._splitter = CharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
+        self._splitter = CharacterTextSplitter(chunk_size=self._TEXT_SPLITTER_CHUNK_SIZE, chunk_overlap=100)
         self._session_id = str(uuid.uuid4())
         self.clear_memory()
 
@@ -115,7 +116,12 @@ class CloneLLM(LiteLLMMixin):
         return self
 
     def _check_is_fitted(self, from_update: bool = False) -> None:
-        if not self.__is_fitted or self.db is None or ((self._splitter is None) if from_update else False):
+        if (
+            not self.__is_fitted
+            or not hasattr(self, "db")
+            or self.db is None
+            or ((not hasattr(self, "_splitter") or self._splitter is None) if from_update else False)
+        ):
             raise AttributeError("This CloneLLM instance is not fitted yet. Call `fit` using this method.")
 
     def update(
