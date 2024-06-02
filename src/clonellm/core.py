@@ -186,7 +186,7 @@ class CloneLLM(LiteLLMMixin):
         if self.memory:
             rag_chain_with_history = self._get_rag_chain_with_history()
             response = rag_chain_with_history.invoke({"input": prompt}, config={"configurable": {"session_id": self._session_id}})
-            return cast(str, response.content)
+            return cast(str, response)
         rag_chain = self._get_rag_chain()
         return rag_chain.invoke(prompt)
 
@@ -197,7 +197,7 @@ class CloneLLM(LiteLLMMixin):
             response = await rag_chain_with_history.ainvoke(
                 {"input": prompt}, config={"configurable": {"session_id": self._session_id}}
             )
-            return cast(str, response.content)
+            return cast(str, response)
         rag_chain = self._get_rag_chain()
         return await rag_chain.ainvoke(prompt)
 
@@ -208,7 +208,7 @@ class CloneLLM(LiteLLMMixin):
             for chunk in rag_chain_with_history.stream(
                 {"input": prompt}, config={"configurable": {"session_id": self._session_id}}
             ):
-                yield chunk.content
+                yield chunk
         else:
             rag_chain = self._get_rag_chain()
             for chunk in rag_chain.stream(prompt):
@@ -221,7 +221,7 @@ class CloneLLM(LiteLLMMixin):
             async for chunk in rag_chain_with_history.astream(
                 {"input": prompt}, config={"configurable": {"session_id": self._session_id}}
             ):
-                yield chunk.content
+                yield chunk
         else:
             rag_chain = self._get_rag_chain()
             async for chunk in rag_chain.astream(prompt):
