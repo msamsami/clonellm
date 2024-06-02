@@ -47,7 +47,7 @@ class CloneLLM(LiteLLMMixin):
     _session_id: str
     db: Chroma
 
-    _CHROMA_COLLECTION_NAME = "clonellm"
+    _VECTOR_STORE_COLLECTION_NAME = "clonellm"
     _TEXT_SPLITTER_CHUNK_SIZE = 2000
 
     def __init__(
@@ -86,7 +86,7 @@ class CloneLLM(LiteLLMMixin):
         **kwargs: Any,
     ) -> Self:
         cls.db = Chroma(
-            collection_name=cls._CHROMA_COLLECTION_NAME, embedding_function=embedding, persist_directory=persist_directory
+            collection_name=cls._VECTOR_STORE_COLLECTION_NAME, embedding_function=embedding, persist_directory=persist_directory
         )
         cls.__is_fitted = True
         return cls(
@@ -104,14 +104,14 @@ class CloneLLM(LiteLLMMixin):
     def fit(self) -> Self:
         documents = self._get_documents()
         documents = self._splitter.split_documents(documents)
-        self.db = Chroma.from_documents(documents, self.embedding, collection_name=self._CHROMA_COLLECTION_NAME)
+        self.db = Chroma.from_documents(documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME)
         self.__is_fitted = True
         return self
 
     async def afit(self) -> Self:
         documents = self._get_documents()
         documents = self._splitter.split_documents(documents)
-        self.db = await Chroma.afrom_documents(documents, self.embedding, collection_name=self._CHROMA_COLLECTION_NAME)
+        self.db = await Chroma.afrom_documents(documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME)
         self.__is_fitted = True
         return self
 
@@ -236,4 +236,4 @@ class CloneLLM(LiteLLMMixin):
         return models_by_provider
 
     def __repr__(self) -> str:
-        return f"CloneLLM<(model='{self.model}', memory={self.memory})>"
+        return f"CloneLLM<(model='{self.model}', memory={bool(self.memory)})>"
