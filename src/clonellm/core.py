@@ -15,6 +15,7 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.vectorstores import VectorStoreRetriever
 from langchain_community.chat_models import ChatLiteLLM
 from langchain_community.vectorstores import Chroma
+from litellm import models_by_provider
 
 from ._base import LiteLLMMixin
 from ._prompt import context_prompt, user_profile_prompt, history_prompt, question_prompt
@@ -46,7 +47,8 @@ class CloneLLM(LiteLLMMixin):
     _session_id: str
     db: Chroma
 
-    _CHROMA_COLLECTION_NAME = "clonellm"
+    _VECTOR_STORE_COLLECTION_NAME = "clonellm"
+    _TEXT_SPLITTER_CHUNK_SIZE = 2000
 
     def __init__(
         self,
@@ -68,7 +70,7 @@ class CloneLLM(LiteLLMMixin):
     def _internal_init(self) -> None:
         self._litellm_kwargs.update({f"{self._llm_provider}_api_key": self.api_key})
         self._llm = ChatLiteLLM(model=self.model, model_name=self.model, **self._litellm_kwargs)
-        self._splitter = CharacterTextSplitter(chunk_size=2000, chunk_overlap=100)
+        self._splitter = CharacterTextSplitter(chunk_size=self._TEXT_SPLITTER_CHUNK_SIZE, chunk_overlap=100)
         self._session_id = str(uuid.uuid4())
         self.clear_memory()
 
@@ -84,7 +86,7 @@ class CloneLLM(LiteLLMMixin):
         **kwargs: Any,
     ) -> Self:
         cls.db = Chroma(
-            collection_name=cls._CHROMA_COLLECTION_NAME, embedding_function=embedding, persist_directory=persist_directory
+            collection_name=cls._VECTOR_STORE_COLLECTION_NAME, embedding_function=embedding, persist_directory=persist_directory
         )
         cls.__is_fitted = True
         return cls(
@@ -102,19 +104,24 @@ class CloneLLM(LiteLLMMixin):
     def fit(self) -> Self:
         documents = self._get_documents()
         documents = self._splitter.split_documents(documents)
-        self.db = Chroma.from_documents(documents, self.embedding, collection_name=self._CHROMA_COLLECTION_NAME)
+        self.db = Chroma.from_documents(documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME)
         self.__is_fitted = True
         return self
 
     async def afit(self) -> Self:
         documents = self._get_documents()
         documents = self._splitter.split_documents(documents)
-        self.db = await Chroma.afrom_documents(documents, self.embedding, collection_name=self._CHROMA_COLLECTION_NAME)
+        self.db = await Chroma.afrom_documents(documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME)
         self.__is_fitted = True
         return self
 
     def _check_is_fitted(self, from_update: bool = False) -> None:
-        if not self.__is_fitted or self.db is None or ((self._splitter is None) if from_update else False):
+        if (
+            not self.__is_fitted
+            or not hasattr(self, "db")
+            or self.db is None
+            or ((not hasattr(self, "_splitter") or self._splitter is None) if from_update else False)
+        ):
             raise AttributeError("This CloneLLM instance is not fitted yet. Call `fit` using this method.")
 
     def update(
@@ -179,7 +186,7 @@ class CloneLLM(LiteLLMMixin):
         if self.memory:
             rag_chain_with_history = self._get_rag_chain_with_history()
             response = rag_chain_with_history.invoke({"input": prompt}, config={"configurable": {"session_id": self._session_id}})
-            return cast(str, response.content)
+            return cast(str, response)
         rag_chain = self._get_rag_chain()
         return rag_chain.invoke(prompt)
 
@@ -190,7 +197,7 @@ class CloneLLM(LiteLLMMixin):
             response = await rag_chain_with_history.ainvoke(
                 {"input": prompt}, config={"configurable": {"session_id": self._session_id}}
             )
-            return cast(str, response.content)
+            return cast(str, response)
         rag_chain = self._get_rag_chain()
         return await rag_chain.ainvoke(prompt)
 
@@ -201,7 +208,7 @@ class CloneLLM(LiteLLMMixin):
             for chunk in rag_chain_with_history.stream(
                 {"input": prompt}, config={"configurable": {"session_id": self._session_id}}
             ):
-                yield chunk.content
+                yield chunk
         else:
             rag_chain = self._get_rag_chain()
             for chunk in rag_chain.stream(prompt):
@@ -214,7 +221,7 @@ class CloneLLM(LiteLLMMixin):
             async for chunk in rag_chain_with_history.astream(
                 {"input": prompt}, config={"configurable": {"session_id": self._session_id}}
             ):
-                yield chunk.content
+                yield chunk
         else:
             rag_chain = self._get_rag_chain()
             async for chunk in rag_chain.astream(prompt):
@@ -224,5 +231,9 @@ class CloneLLM(LiteLLMMixin):
         clear_session_history(self._session_id)
         self._session_id = str(uuid.uuid4())
 
+    @property
+    def models_by_provider(self) -> dict[str, list[str]]:
+        return cast(dict[str, list[str]], models_by_provider)
+
     def __repr__(self) -> str:
-        return f"CloneLLM<(model='{self.model}', memory={self.memory})>"
+        return f"CloneLLM<(model='{self.model}', memory={bool(self.memory)})>"

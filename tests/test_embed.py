@@ -1,6 +1,3 @@
-import random
-import string
-
 from litellm import (
     azure_embedding_models,
     cohere_embedding_models,
@@ -37,13 +34,9 @@ def test_api_key():
     assert embed._api_key.startswith("sk-")
 
 
-def create_random_text(length: int = 20) -> str:
-    return "".join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits + " ", k=length))
-
-
-def test_embed_documents():
+def test_embed_documents(random_text):
     embed = LiteLLMEmbeddings(model="text-embedding-3-small")
-    documents = [create_random_text() for _ in range(10)]
+    documents = [random_text for _ in range(10)]
     embeddings = embed.embed_documents(documents)
     assert isinstance(embeddings, list)
     for item in embeddings:
@@ -53,9 +46,9 @@ def test_embed_documents():
 
 
 @pytest.mark.asyncio
-async def test_aembed_documents():
+async def test_aembed_documents(random_text):
     embed = LiteLLMEmbeddings(model="text-embedding-3-small")
-    documents = [create_random_text() for _ in range(10)]
+    documents = [random_text for _ in range(10)]
     embeddings = await embed.aembed_documents(documents)
     assert isinstance(embeddings, list)
     for item in embeddings:
@@ -65,9 +58,9 @@ async def test_aembed_documents():
 
 
 @pytest.mark.parametrize("dimensions", [256, 512])
-def test_embed_documents_with_dimensions(dimensions: int):
+def test_embed_documents_with_dimensions(dimensions: int, random_text):
     embed = LiteLLMEmbeddings(model="text-embedding-3-small", dimensions=dimensions)
-    documents = [create_random_text() for _ in range(10)]
+    documents = [random_text for _ in range(10)]
     embeddings = embed.embed_documents(documents)
     for item in embeddings:
         assert len(item) == dimensions
