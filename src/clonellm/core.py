@@ -233,7 +233,7 @@ class CloneLLM(LiteLLMMixin):
 
     @property
     def models_by_provider(self) -> dict[str, list[str]]:
-        return models_by_provider
+        return cast(dict[str, list[str]], models_by_provider)
 
     def __repr__(self) -> str:
         return f"CloneLLM<(model='{self.model}', memory={bool(self.memory)})>"
