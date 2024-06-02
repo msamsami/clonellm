@@ -281,7 +281,7 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [x] Add support for streaming completion
 - [ ] Add support for custom system prompts
 - [x] Make `LiteLLMEmbeddings.all_embedding_models` a property
-- [ ] Add an attribute to `CloneLLM` to return supported models
+- [x] Add an attribute to `CloneLLM` to return supported models
 - [x] Add initial version of README
 - [ ] Describe `CloneLLM.clear_memory` method in README
 - [ ] Add documents

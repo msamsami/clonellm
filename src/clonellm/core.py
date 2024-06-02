@@ -15,6 +15,7 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.vectorstores import VectorStoreRetriever
 from langchain_community.chat_models import ChatLiteLLM
 from langchain_community.vectorstores import Chroma
+from litellm import models_by_provider
 
 from ._base import LiteLLMMixin
 from ._prompt import context_prompt, user_profile_prompt, history_prompt, question_prompt
@@ -223,6 +224,10 @@ class CloneLLM(LiteLLMMixin):
     def clear_memory(self) -> None:
         clear_session_history(self._session_id)
         self._session_id = str(uuid.uuid4())
+
+    @property
+    def models_by_provider(self) -> dict[str, list[str]]:
+        return models_by_provider
 
     def __repr__(self) -> str:
         return f"CloneLLM<(model='{self.model}', memory={self.memory})>"
