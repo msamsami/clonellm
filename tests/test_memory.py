@@ -25,6 +25,7 @@ def test_history_clear():
 
 
 def test_get_session_history():
+    clonellm.memory._store = {}
     session_id = "123"
     history = get_session_history(session_id)
     assert isinstance(history, InMemoryHistory)
@@ -37,6 +38,7 @@ def test_get_session_history():
     _ = get_session_history("abc")
     assert len(clonellm.memory._store) == 2
     assert "abc" in clonellm.memory._store
+    clonellm.memory._store = {}
 
 
 def test_clear_session_history():
@@ -51,3 +53,4 @@ def test_clear_session_history():
     assert len(clonellm.memory._store) == 1
     clear_session_history("abc")
     assert len(clonellm.memory._store) == 0
+    clonellm.memory._store = {}
