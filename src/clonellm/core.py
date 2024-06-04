@@ -18,9 +18,8 @@ from langchain_community.vectorstores import Chroma
 from litellm import models_by_provider
 
 from ._base import LiteLLMMixin
-from ._prompt import context_prompt, user_profile_prompt, history_prompt, question_prompt
+from ._prompt import summarize_context_prompt, context_prompt, user_profile_prompt, history_prompt, question_prompt
 from ._typing import UserProfile
-from .embed import LiteLLMEmbeddings
 from .memory import get_session_history, clear_session_history
 
 logging.getLogger("langchain_core").setLevel(logging.ERROR)
@@ -34,7 +33,7 @@ class CloneLLM(LiteLLMMixin):
     Args:
         model (str): The name of the language model to use for text completion.
         documents (list[Document | str]): List of documents related to cloning user to use as context for the language model.
-        embedding (LiteLLMEmbeddings | Embeddings): The embedding function to use for RAG.
+        embedding (Optional[Embeddings]): The embedding function to use for RAG. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
         user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
         memory (Optional[bool]): Whether to enable the conversation memory (history). Defaults to None for no memory.
         api_key (Optional[str]): The API key to use. Defaults to None.
@@ -45,6 +44,7 @@ class CloneLLM(LiteLLMMixin):
     __is_fitted: bool = False
     _splitter: TextSplitter
     _session_id: str
+    context: str
     db: Chroma
 
     _VECTOR_STORE_COLLECTION_NAME = "clonellm"
@@ -54,7 +54,7 @@ class CloneLLM(LiteLLMMixin):
         self,
         model: str,
         documents: list[Document | str],
-        embedding: LiteLLMEmbeddings | Embeddings,
+        embedding: Optional[Embeddings] = None,
         user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
         memory: Optional[bool] = None,
         api_key: Optional[str] = None,
@@ -70,16 +70,17 @@ class CloneLLM(LiteLLMMixin):
     def _internal_init(self) -> None:
         self._litellm_kwargs.update({f"{self._llm_provider}_api_key": self.api_key})
         self._llm = ChatLiteLLM(model=self.model, model_name=self.model, **self._litellm_kwargs)
-        self._splitter = CharacterTextSplitter(chunk_size=self._TEXT_SPLITTER_CHUNK_SIZE, chunk_overlap=100)
+        if self.embedding:
+            self._splitter = CharacterTextSplitter(chunk_size=self._TEXT_SPLITTER_CHUNK_SIZE, chunk_overlap=100)
         self._session_id = str(uuid.uuid4())
         self.clear_memory()
 
     @classmethod
     def from_persist_directory(
         cls,
-        persist_directory: str,
         model: str,
-        embedding: LiteLLMEmbeddings | Embeddings,
+        persist_directory: str,
+        embedding: Optional[Embeddings] = None,
         user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
         memory: Optional[bool] = None,
         api_key: Optional[str] = None,
@@ -93,6 +94,20 @@ class CloneLLM(LiteLLMMixin):
             model=model, documents=[], embedding=embedding, user_profile=user_profile, memory=memory, api_key=api_key, **kwargs
         )
 
+    @classmethod
+    def from_context(
+        cls,
+        model: str,
+        context: str,
+        user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
+        memory: Optional[bool] = None,
+        api_key: Optional[str] = None,
+        **kwargs: Any,
+    ) -> Self:
+        cls.context = context
+        cls.__is_fitted = True
+        return cls(model=model, documents=[], user_profile=user_profile, memory=memory, api_key=api_key, **kwargs)
+
     def _get_documents(self, documents: Optional[list[Document | str]] = None) -> list[Document]:
         documents_ = []
         for i, doc in enumerate(documents or self.documents):
@@ -101,26 +116,51 @@ class CloneLLM(LiteLLMMixin):
             documents_.append(Document(page_content=doc) if isinstance(doc, str) else doc)
         return documents_
 
+    def _get_summarized_context(self, documents: list[Document]) -> None:
+        documents_str = "\n\n".join([doc.page_content for doc in documents])
+        chain: RunnableSerializable[Any, str] = (
+            {"input": RunnablePassthrough()} | summarize_context_prompt | self._llm | StrOutputParser()
+        )
+        self.context = chain.invoke(documents_str)
+
     def fit(self) -> Self:
         documents = self._get_documents()
-        documents = self._splitter.split_documents(documents)
-        self.db = Chroma.from_documents(documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME)
+        if self.embedding:
+            documents = self._splitter.split_documents(documents)
+            self.db = Chroma.from_documents(documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME)
+        else:
+            self._get_summarized_context(documents)
         self.__is_fitted = True
         return self
 
+    async def _aget_summarized_context(self, documents: list[Document]) -> None:
+        documents_str = "\n\n".join([doc.page_content for doc in documents])
+        chain: RunnableSerializable[Any, str] = (
+            {"input": RunnablePassthrough()} | summarize_context_prompt | self._llm | StrOutputParser()
+        )
+        self.context = await chain.ainvoke(documents_str)
+
     async def afit(self) -> Self:
         documents = self._get_documents()
-        documents = self._splitter.split_documents(documents)
-        self.db = await Chroma.afrom_documents(documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME)
+        if self.embedding:
+            documents = self._splitter.split_documents(documents)
+            self.db = await Chroma.afrom_documents(documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME)
+        else:
+            await self._aget_summarized_context(documents)
         self.__is_fitted = True
         return self
 
     def _check_is_fitted(self, from_update: bool = False) -> None:
-        if (
-            not self.__is_fitted
-            or not hasattr(self, "db")
-            or self.db is None
-            or ((not hasattr(self, "_splitter") or self._splitter is None) if from_update else False)
+        if not self.__is_fitted or (
+            (
+                self.embedding
+                and (
+                    not hasattr(self, "db")
+                    or self.db is None
+                    or ((not hasattr(self, "_splitter") or self._splitter is None) if from_update else False)
+                )
+            )
+            or (not self.embedding and (not hasattr(self, "context") or self.context is None))
         ):
             raise AttributeError("This CloneLLM instance is not fitted yet. Call `fit` using this method.")
 
@@ -130,8 +170,11 @@ class CloneLLM(LiteLLMMixin):
     ) -> Self:
         self._check_is_fitted(from_update=True)
         documents_ = self._get_documents(documents)
-        documents_ = self._splitter.split_documents(documents_)
-        self.db.add_documents(documents_)
+        if self.embedding:
+            documents_ = self._splitter.split_documents(documents_)
+            self.db.add_documents(documents_)
+        else:
+            self._get_summarized_context(documents_)
         return self
 
     async def aupdate(
@@ -140,8 +183,11 @@ class CloneLLM(LiteLLMMixin):
     ) -> Self:
         self._check_is_fitted(from_update=True)
         documents_ = self._get_documents(documents)
-        documents_ = self._splitter.split_documents(documents_)
-        await self.db.aadd_documents(documents_)
+        if self.embedding:
+            documents_ = self._splitter.split_documents(documents_)
+            await self.db.aadd_documents(documents_)
+        else:
+            await self._aget_summarized_context(documents_)
         return self
 
     @property
@@ -160,7 +206,9 @@ class CloneLLM(LiteLLMMixin):
         if self.user_profile:
             prompt += user_profile_prompt.format_messages(user_profile=self._user_profile)
         prompt += question_prompt
-        return {"context": self._get_retriever(), "input": RunnablePassthrough()} | prompt | self._llm | StrOutputParser()
+
+        context = self._get_retriever() if self.embedding else lambda x: self.context
+        return {"context": context, "input": RunnablePassthrough()} | prompt | self._llm | StrOutputParser()
 
     def _get_rag_chain_with_history(self) -> RunnableWithMessageHistory:
         prompt = context_prompt
@@ -169,8 +217,8 @@ class CloneLLM(LiteLLMMixin):
         prompt += history_prompt
         prompt += question_prompt
 
-        context = itemgetter("input") | self._get_retriever()
-        first_step = RunnablePassthrough.assign(context=context)
+        context = itemgetter("input") | self._get_retriever() if self.embedding else lambda x: self.context
+        first_step = RunnablePassthrough.assign(context=context)  # type: ignore[arg-type]
         rag_chain = first_step | prompt | self._llm | StrOutputParser()
 
         return RunnableWithMessageHistory(
@@ -230,6 +278,9 @@ class CloneLLM(LiteLLMMixin):
     def clear_memory(self) -> None:
         clear_session_history(self._session_id)
         self._session_id = str(uuid.uuid4())
+
+    def reset_memory(self) -> None:
+        self.clear_memory()
 
     @property
     def models_by_provider(self) -> dict[str, list[str]]:

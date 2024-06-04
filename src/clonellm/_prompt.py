@@ -1,6 +1,16 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-__all__ = ("context_prompt", "user_profile_prompt", "history_prompt", "question_prompt")
+__all__ = ("summarize_context_prompt", "context_prompt", "user_profile_prompt", "history_prompt", "question_prompt")
+
+
+summarize_context_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "You are expert in summarizing texts and extracting key information."),
+        ("system", "You are given a text to summarize to be used as context in a RAG pipeline."),
+        ("system", "You MUST keep the important information of the text, ONLY return the summary, no further descriptions."),
+        ("human", "Text:\n{input}\n\nSummarized text:\n"),
+    ]
+)
 
 
 context_prompt = ChatPromptTemplate.from_messages(
