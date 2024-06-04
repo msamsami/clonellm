@@ -10,7 +10,7 @@
 
 <h4 align="center">
     <a href="https://pypi.org/project/clonellm/" target="_blank">
-        <img src="https://img.shields.io/badge/release-v0.0.4-green" alt="Latest Release">
+        <img src="https://img.shields.io/badge/release-v0.0.5-green" alt="Latest Release">
     </a>
     <a href="https://pypi.org/project/clonellm/" target="_blank">
         <img src="https://img.shields.io/pypi/v/clonellm.svg" alt="PyPI Version">
@@ -274,7 +274,7 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [x] Add pre commit configuration file
 - [x] Add setup.py script
 - [x] Add support for conversation history
-- [ ] Add support for RAG with no embedding (ingest the entire context into the prompt)
+- [x] Add support for RAG with no embedding (ingest the entire context into the prompt)
 - [x] Add support for string documents
 - [x] Fix mypy errors
 - [x] Rename `completion` methods to `invoke`
