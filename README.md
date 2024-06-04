@@ -274,7 +274,7 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [x] Add pre commit configuration file
 - [x] Add setup.py script
 - [x] Add support for conversation history
-- [x] Add support for RAG with no embedding (ingest the entire context into the prompt)
+- [x] Add support for RAG with no embedding (use a summary of documents as the context)
 - [x] Add support for string documents
 - [x] Fix mypy errors
 - [x] Rename `completion` methods to `invoke`
