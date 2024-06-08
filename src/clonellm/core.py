@@ -20,7 +20,7 @@ from litellm import models_by_provider
 from ._base import LiteLLMMixin
 from ._prompt import summarize_context_prompt, context_prompt, user_profile_prompt, history_prompt, question_prompt
 from ._typing import UserProfile
-from .memory import get_session_history, clear_session_history
+from .memory import get_session_history, get_session_history_size, clear_session_history
 
 logging.getLogger("langchain_core").setLevel(logging.ERROR)
 
@@ -109,6 +109,8 @@ class CloneLLM(LiteLLMMixin):
         return cls(model=model, documents=[], user_profile=user_profile, memory=memory, api_key=api_key, **kwargs)
 
     def _get_documents(self, documents: Optional[list[Document | str]] = None) -> list[Document]:
+        if not (documents or self.documents):
+            raise ValueError("No documents provided")
         documents_ = []
         for i, doc in enumerate(documents or self.documents):
             if not isinstance(doc, (Document, str)):
@@ -275,11 +277,24 @@ class CloneLLM(LiteLLMMixin):
             async for chunk in rag_chain.astream(prompt):
                 yield chunk
 
+    @property
+    def memory_size(self) -> int:
+        """
+        Returns the size of clone memory, i.e., the length of conversation history.
+        """
+        return get_session_history_size(self._session_id)
+
     def clear_memory(self) -> None:
+        """
+        Clears the clone memory, i.e., conversation history.
+        """
         clear_session_history(self._session_id)
         self._session_id = str(uuid.uuid4())
 
     def reset_memory(self) -> None:
+        """
+        Clears the clone memory, i.e., conversation history.
+        """
         self.clear_memory()
 
     @property
