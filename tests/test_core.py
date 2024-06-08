@@ -9,7 +9,7 @@ from clonellm.memory import get_session_history
 LLM_MODEL = "gpt-3.5-turbo"
 EMBEDDING_MODEL = "text-embedding-3-small"
 GENERIC_PROFILE = {"first_name": "Mehdi", "last_name": "Samsami"}
-GENERIC_PROMPT = "Who is the president of US?"
+GENERIC_PROMPT = "What football team do you support?"
 
 
 def test_api_key():
@@ -90,6 +90,10 @@ def test_user_profile():
 
 def test_fit(random_text):
     embed = LiteLLMEmbeddings(model=EMBEDDING_MODEL)
+    clone = CloneLLM(model=LLM_MODEL, documents=[], embedding=embed)
+    with pytest.raises(ValueError) as e:
+        clone.fit()
+        assert "No documents provided" in str(e)
     clone = CloneLLM(model=LLM_MODEL, documents=[random_text], embedding=embed)
     clone.fit()
     assert not hasattr(clone, "context")
@@ -99,6 +103,10 @@ def test_fit(random_text):
 
 
 def test_fit_without_embedding(random_text):
+    clone = CloneLLM(model=LLM_MODEL, documents=[])
+    with pytest.raises(ValueError) as e:
+        clone.fit()
+        assert "No documents provided" in str(e)
     clone = CloneLLM(model=LLM_MODEL, documents=[random_text])
     clone.fit()
     assert not hasattr(clone, "db")
@@ -112,6 +120,9 @@ def test_from_context():
     assert not hasattr(clone, "db")
     assert hasattr(clone, "context")
     assert isinstance(clone.context, str)
+    with pytest.raises(ValueError) as e:
+        clone.fit()
+        assert "No documents provided" in str(e)
     response = clone.invoke("What's your name?")
     assert any(name.lower() in response.lower() for name in GENERIC_PROFILE.values())
 
@@ -207,6 +218,15 @@ async def test_astream_with_memory(random_text):
     assert get_session_history(clone._session_id).messages[-2].content == GENERIC_PROMPT
 
 
+def test_memory_size():
+    clone = CloneLLM.from_context(model=LLM_MODEL, context="I'm Mehdi Samsami", user_profile=GENERIC_PROFILE, memory=True)
+    assert clone.memory_size == 0
+    clone.invoke("What's your first name?")
+    assert clone.memory_size == 2
+    clone.invoke("What's your last name?")
+    assert clone.memory_size == 4
+
+
 def test_clear_memory():
     embed = LiteLLMEmbeddings(model=EMBEDDING_MODEL)
     clone = CloneLLM(model=LLM_MODEL, documents=[], embedding=embed, memory=True)
@@ -214,3 +234,4 @@ def test_clear_memory():
     clone.clear_memory()
     assert clone._session_id != session_id
     assert not get_session_history(session_id).messages
+    assert clone.memory_size == 0
