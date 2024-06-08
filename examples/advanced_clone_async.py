@@ -9,6 +9,7 @@ from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
 
 RESET_MEMORY_COMMANDS = ["reset memory", "clear memory", "clear your memory", "forget everything"]
 EXIT_COMMANDS = ["exit", "quit"]
+MAX_MEMORY_SIZE = 20
 
 
 async def main():
@@ -67,6 +68,11 @@ async def main():
 
         async for chunk in clone.astream(prompt):
             print(chunk, end="", flush=True)
+
+        if clone.memory_size >= MAX_MEMORY_SIZE:
+            clone.clear_memory()
+            print("\n[Memory is cleared]", end="")
+
         print("\n")
 
 
