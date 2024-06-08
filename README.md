@@ -65,11 +65,11 @@ from langchain_core.documents import Document
 
 documents = [
     Document(page_content="My name is Mehdi Samsami."),
-    open("cv.txt", "r").read(),
+    open("about_me.txt", "r").read(),
 ]
 ```
 
-**Step 2**. Initialize an embedding model using CloneLLM's `LiteLLMEmbeddings` or LangChain's embeddings. Then, initialize a clone with your documents, embedding model, and your referred LLM.
+**Step 2**. Initialize an embedding model using CloneLLM's `LiteLLMEmbeddings` or LangChain's embeddings. Then, initialize a clone with your documents, embedding model, and your preferred LLM.
 ```python
 from clonellm import CloneLLM, LiteLLMEmbeddings
 
@@ -95,7 +95,7 @@ clone.invoke("What's your name?")
 ```
 
 ### Models
-At its core, CloneLLM utilizes LiteLLM for interactions with various LLMs. This is why you can choose from many different providers (100+ LLMs) supported by LiteLLM, including Bedrock, Azure, OpenAI, Cohere, Anthropic, Ollama, Sagemaker, HuggingFace, Replicate, etc.
+At its core, CloneLLM utilizes LiteLLM for interactions with various LLMs. This is why you can choose from 100+ LLMs from many different providers, including Bedrock, Azure, OpenAI, Cohere, Anthropic, Ollama, Sagemaker, HuggingFace, Replicate, etc.
 
 ### Document loaders
 You can use LangChain's document loaders to seamlessly import data from various sources into `Document` format. Take, for example, text and HTML loaders:
@@ -166,6 +166,8 @@ profile = {
     "age": 28,
     "location": "Shiraz, Iran",
     "expertise": ["Data Science", "AI/ML", "Data Analytics"],
+    "languages": ["English", "Persian"],
+    "tone": "Friendly",
 }
 ```
 
