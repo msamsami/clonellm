@@ -10,7 +10,7 @@
 
 <h4 align="center">
     <a href="https://pypi.org/project/clonellm/" target="_blank">
-        <img src="https://img.shields.io/badge/release-v0.0.5-green" alt="Latest Release">
+        <img src="https://img.shields.io/badge/release-v0.0.6-green" alt="Latest Release">
     </a>
     <a href="https://pypi.org/project/clonellm/" target="_blank">
         <img src="https://img.shields.io/pypi/v/clonellm.svg" alt="PyPI Version">
@@ -200,6 +200,18 @@ clone = CloneLLM(
 )
 ```
 
+Use the `memory_size` attribute to get the length of conversation history, i.e., the size of clone memory:
+```
+print(clone.memory_size)
+# 6
+```
+
+If you needed to clear the history of the conversation, i.e., the clone memory, at any time, you can easily call either of the `reset_memory()` and `clear_memory()` methods.
+```python
+clone.clear_memory()
+# clone.reset_memory()
+```
+
 ### Streaming
 CloneLLM supports streaming responses from the LLM, allowing for real-time processing of text as it is being generated, rather than receiving the whole output at once.
 ```python
@@ -279,14 +291,15 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [x] Fix mypy errors
 - [x] Rename `completion` methods to `invoke`
 - [x] Add support for streaming completion
-- [ ] Add support for custom system prompts
 - [x] Make `LiteLLMEmbeddings.all_embedding_models` a property
 - [x] Add an attribute to `CloneLLM` to return supported models
 - [x] Add initial version of README
-- [ ] Describe `CloneLLM.clear_memory` method in README
+- [x] Describe `CloneLLM.clear_memory` method in README
+- [x] Add an attribute to `CloneLLM` to return the size of the memory
+- [ ] Add support for custom system prompts
 - [ ] Add documents
 - [x] Add usage examples
 - [x] Add unit tests for non-core modules
-- [ ] Add unit tests for core module
+- [x] Add unit tests for core module
 - [x] Add GitHub workflow to run tests on PR
 - [x] Add GitHub workflow to publish to PyPI on release

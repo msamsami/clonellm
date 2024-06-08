@@ -1,7 +1,9 @@
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 import clonellm.memory
-from clonellm.memory import InMemoryHistory, get_session_history, clear_session_history
+from clonellm.memory import InMemoryHistory, get_session_history, get_session_history_size, clear_session_history
+
+import pytest
 
 
 def test_history_add_message():
@@ -24,8 +26,8 @@ def test_history_clear():
     assert len(history.messages) == 0
 
 
+@pytest.mark.usefixtures("clear_memory_store")
 def test_get_session_history():
-    clonellm.memory._store = {}
     session_id = "123"
     history = get_session_history(session_id)
     assert isinstance(history, InMemoryHistory)
@@ -38,11 +40,25 @@ def test_get_session_history():
     _ = get_session_history("abc")
     assert len(clonellm.memory._store) == 2
     assert "abc" in clonellm.memory._store
-    clonellm.memory._store = {}
 
 
+@pytest.mark.usefixtures("clear_memory_store")
+def test_get_session_history_size(random_text):
+    assert isinstance(get_session_history_size(random_text), int)
+    assert get_session_history_size(random_text) == 0
+    session_id = "123"
+    history = get_session_history(session_id)
+    assert get_session_history_size(session_id) == 0
+    history.add_ai_message("Hello")
+    assert get_session_history_size(session_id) == 1
+    history.add_messages([HumanMessage(content=random_text) for _ in range(10)])
+    assert get_session_history_size(session_id) == 11
+    history.clear()
+    assert get_session_history_size(session_id) == 0
+
+
+@pytest.mark.usefixtures("clear_memory_store")
 def test_clear_session_history():
-    clonellm.memory._store = {}
     session_id = "123"
     history = get_session_history(session_id)
     history.add_user_message("Hello")
@@ -53,4 +69,3 @@ def test_clear_session_history():
     assert len(clonellm.memory._store) == 1
     clear_session_history("abc")
     assert len(clonellm.memory._store) == 0
-    clonellm.memory._store = {}

@@ -6,7 +6,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 
 _store = {}
 
-__all__ = ("InMemoryHistory", "get_session_history", "clear_session_history")
+__all__ = ("InMemoryHistory", "get_session_history", "get_session_history_size", "clear_session_history")
 
 
 class InMemoryHistory(BaseChatMessageHistory, BaseModel):
@@ -35,6 +35,12 @@ def get_session_history(session_id: str) -> InMemoryHistory:
     if session_id not in _store:
         _store[session_id] = InMemoryHistory()
     return _store[session_id]
+
+
+def get_session_history_size(session_id: str) -> int:
+    if session_id not in _store:
+        return 0
+    return len(_store[session_id].messages)
 
 
 def clear_session_history(session_id: str) -> None:
