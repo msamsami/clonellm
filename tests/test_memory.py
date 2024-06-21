@@ -1,9 +1,8 @@
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+import pytest
 
 import clonellm.memory
 from clonellm.memory import InMemoryHistory, get_session_history, get_session_history_size, clear_session_history
-
-import pytest
 
 
 def test_history_add_message():
@@ -18,12 +17,45 @@ def test_history_last_message():
     assert history.messages[-1] == SystemMessage(content="two")
 
 
+def test_history_memory_size():
+    history = InMemoryHistory()
+    history.add_message(HumanMessage(content="Hello"))
+    assert history.memory_size == len(history.messages) == 1
+    history.add_message(AIMessage(content="Hi"))
+    assert history.memory_size == len(history.messages) == 2
+    for i in range(20):
+        history.add_user_message("Who are you?")
+        assert history.memory_size == len(history.messages) == 2 + (i + 1)
+
+
 def test_history_clear():
     history = InMemoryHistory(messages=[HumanMessage(content="one"), SystemMessage(content="two")])
     history.add_user_message("three")
-    assert len(history.messages) == 3
+    assert history.memory_size == 3
     history.clear()
-    assert len(history.messages) == 0
+    assert history.memory_size == 0
+
+
+def test_history_init_with_limited_size():
+    history = InMemoryHistory(messages=[HumanMessage(content="one"), SystemMessage(content="two")])
+    assert history.messages == [HumanMessage(content="one"), SystemMessage(content="two")]
+    history = InMemoryHistory(messages=[HumanMessage(content="one"), SystemMessage(content="two")], max_memory_size=0)
+    assert history.messages == []
+    history = InMemoryHistory(messages=[HumanMessage(content="one"), SystemMessage(content="two")], max_memory_size=1)
+    assert history.messages == [SystemMessage(content="two")]
+    history = InMemoryHistory(messages=[HumanMessage(content="one"), SystemMessage(content="two")], max_memory_size=2)
+    assert history.messages == [HumanMessage(content="one"), SystemMessage(content="two")]
+    history = InMemoryHistory(messages=[HumanMessage(content="one"), SystemMessage(content="two")], max_memory_size=3)
+    assert history.messages == [HumanMessage(content="one"), SystemMessage(content="two")]
+
+
+def test_history_add_message_with_limited_size():
+    max_memory_size = 3
+    message = HumanMessage(content="Hello")
+    history = InMemoryHistory(max_memory_size=max_memory_size)
+    for i in range(50):
+        history.add_message(message)
+        assert history.memory_size == min(i + 1, max_memory_size)
 
 
 @pytest.mark.usefixtures("clear_memory_store")
@@ -31,7 +63,7 @@ def test_get_session_history():
     session_id = "123"
     history = get_session_history(session_id)
     assert isinstance(history, InMemoryHistory)
-    assert len(history.messages) == 0
+    assert history.memory_size == 0
     assert len(clonellm.memory._store) == 1
     assert session_id in clonellm.memory._store
     history.add_ai_message("Hello")

@@ -46,7 +46,7 @@ async def main():
         documents=documents,
         embedding=embedding,
         user_profile=profile,
-        memory=True,
+        memory=MAX_MEMORY_SIZE,
         request_timeout=5,
         temperature=0.5,
         max_tokens=256,
@@ -68,10 +68,6 @@ async def main():
 
         async for chunk in clone.astream(prompt):
             print(chunk, end="", flush=True)
-
-        if clone.memory_size >= MAX_MEMORY_SIZE:
-            clone.clear_memory()
-            print("\n[Memory is cleared]", end="")
 
         print("\n")
 

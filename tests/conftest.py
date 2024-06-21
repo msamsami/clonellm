@@ -1,10 +1,10 @@
 import random
 import string
 
-import clonellm.memory
-
 from dotenv import load_dotenv
 import pytest
+
+import clonellm.memory
 
 
 @pytest.fixture(autouse=True, scope="session")
