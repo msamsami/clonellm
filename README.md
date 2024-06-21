@@ -10,7 +10,7 @@
 
 <h4 align="center">
     <a href="https://pypi.org/project/clonellm/" target="_blank">
-        <img src="https://img.shields.io/badge/release-v0.0.6-green" alt="Latest Release">
+        <img src="https://img.shields.io/badge/release-v0.0.7-green" alt="Latest Release">
     </a>
     <a href="https://pypi.org/project/clonellm/" target="_blank">
         <img src="https://img.shields.io/pypi/v/clonellm.svg" alt="PyPI Version">
@@ -187,7 +187,7 @@ clone = CloneLLM(
 ```
 
 ### Conversation history (memory)
-Enable the memory feature to allow your clone to retain a history of past interactions. This "memory" helps the clone to deliver contextually aware responses by referencing previous dialogues. This is simply done by setting `memory` to True when initializing the clone:
+Enable the memory feature to allow your clone to access to the history of conversation. This is simply done by setting `memory` argument to `True` or `-1` for infinite memory or an integer greater than zero for a fixed size of memory:
 ```python
 from clonellm import CloneLLM
 import os
@@ -198,11 +198,11 @@ clone = CloneLLM(
     model="meta-llama/Llama-2-70b-chat",
     documents=documents,
     embedding=embedding,
-    memory=True,
+    memory=10,  # Enable memory with maximum size of 10
 )
 ```
 
-Use the `memory_size` attribute to get the length of conversation history, i.e., the size of clone memory:
+Use the `memory_size` attribute to get the current length of conversation history, i.e., the size of clone memory:
 ```
 print(clone.memory_size)
 # 6
@@ -297,7 +297,8 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [x] Add an attribute to `CloneLLM` to return supported models
 - [x] Add initial version of README
 - [x] Describe `CloneLLM.clear_memory` method in README
-- [x] Add an attribute to `CloneLLM` to return the size of the memory
+- [x] Add an attribute to `CloneLLM` to return the memory size
+- [x] Add support for fixed size memory
 - [ ] Add support for custom system prompts
 - [ ] Add documents
 - [x] Add usage examples

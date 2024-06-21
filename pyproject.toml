@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "clonellm"
-version = "0.0.6"
+version = "0.0.7"
 description = "Python package to create an AI clone of yourself using LLMs."
 packages = [{ from = "src", include = "clonellm" }]
 license = "MIT"
@@ -25,6 +25,7 @@ mypy = "*"
 pytest-asyncio = "*"
 ruff = "^0.4"
 types-setuptools = "^69.0.0.20240106"
+pre-commit = "^3.7.1"
 
 [tool.mypy]
 exclude=["tests", "examples"]

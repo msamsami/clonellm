@@ -1,4 +1,5 @@
 from __future__ import annotations
+import functools
 import json
 import logging
 from operator import itemgetter
@@ -20,7 +21,7 @@ from litellm import models_by_provider
 from ._base import LiteLLMMixin
 from ._prompt import summarize_context_prompt, context_prompt, user_profile_prompt, history_prompt, question_prompt
 from ._typing import UserProfile
-from .memory import get_session_history, get_session_history_size, clear_session_history
+from .memory import clear_session_history, get_session_history, get_session_history_size
 
 logging.getLogger("langchain_core").setLevel(logging.ERROR)
 
@@ -35,7 +36,7 @@ class CloneLLM(LiteLLMMixin):
         documents (list[Document | str]): List of documents related to cloning user to use as context for the language model.
         embedding (Optional[Embeddings]): The embedding function to use for RAG. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
         user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
-        memory (Optional[bool]): Whether to enable the conversation memory (history). Defaults to None for no memory.
+        memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
         api_key (Optional[str]): The API key to use. Defaults to None.
         **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
@@ -56,7 +57,7 @@ class CloneLLM(LiteLLMMixin):
         documents: list[Document | str],
         embedding: Optional[Embeddings] = None,
         user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
-        memory: Optional[bool] = None,
+        memory: Optional[bool | int] = None,
         api_key: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
@@ -82,7 +83,7 @@ class CloneLLM(LiteLLMMixin):
         persist_directory: str,
         embedding: Optional[Embeddings] = None,
         user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
-        memory: Optional[bool] = None,
+        memory: Optional[bool | int] = None,
         api_key: Optional[str] = None,
         **kwargs: Any,
     ) -> Self:
@@ -100,7 +101,7 @@ class CloneLLM(LiteLLMMixin):
         model: str,
         context: str,
         user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
-        memory: Optional[bool] = None,
+        memory: Optional[bool | int] = None,
         api_key: Optional[str] = None,
         **kwargs: Any,
     ) -> Self:
@@ -223,9 +224,17 @@ class CloneLLM(LiteLLMMixin):
         first_step = RunnablePassthrough.assign(context=context)  # type: ignore[arg-type]
         rag_chain = first_step | prompt | self._llm | StrOutputParser()
 
+        if self.memory in (True, -1):
+            max_memory_size = -1
+        elif self.memory in (False, None, 0):
+            max_memory_size = 0
+        else:
+            max_memory_size = cast(int, self.memory)
+        get_session_history_ = functools.partial(get_session_history, max_memory_size=max_memory_size)
+
         return RunnableWithMessageHistory(
             rag_chain,  # type: ignore[arg-type]
-            get_session_history,
+            get_session_history_,
             input_messages_key="input",
             history_messages_key="chat_history",
             output_parser=StrOutputParser(),

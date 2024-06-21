@@ -8,7 +8,7 @@ EXIT_COMMANDS = ["exit", "quit"]
 def main():
     documents = [Document(page_content=open("data/about_me.txt").read())]
     embedding = LiteLLMEmbeddings(model="embed-english-light-v3.0")
-    clone = CloneLLM(model="command-nightly", documents=documents, embedding=embedding, memory=True)
+    clone = CloneLLM(model="command-nightly", documents=documents, embedding=embedding, memory=-1)
     clone.fit()
 
     while True:
