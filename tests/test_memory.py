@@ -1,8 +1,13 @@
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 import pytest
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 import clonellm.memory
-from clonellm.memory import InMemoryHistory, get_session_history, get_session_history_size, clear_session_history
+from clonellm.memory import (
+    InMemoryHistory,
+    clear_session_history,
+    get_session_history,
+    get_session_history_size,
+)
 
 
 def test_history_add_message():

@@ -1,4 +1,3 @@
-from clonellm import CloneLLM, LiteLLMEmbeddings
 from langchain_community.document_loaders import (
     DirectoryLoader,
     JSONLoader,
@@ -8,6 +7,8 @@ from langchain_community.document_loaders import (
     UnstructuredMarkdownLoader,
 )
 from langchain_core.documents import Document
+
+from clonellm import CloneLLM, LiteLLMEmbeddings
 
 # !pip install jq
 # !pip install pypdf
