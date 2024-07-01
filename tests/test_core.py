@@ -1,7 +1,7 @@
-from langchain_community.chat_models import ChatLiteLLM
-from langchain.text_splitter import TextSplitter
-from langchain_community.vectorstores import VectorStore
 import pytest
+from langchain.text_splitter import TextSplitter
+from langchain_community.chat_models import ChatLiteLLM
+from langchain_community.vectorstores import VectorStore
 
 from clonellm import CloneLLM, LiteLLMEmbeddings, UserProfile
 from clonellm.memory import get_session_history

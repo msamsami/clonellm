@@ -1,11 +1,11 @@
+import pytest
 from litellm import (
     azure_embedding_models,
-    cohere_embedding_models,
-    vertex_embedding_models,
     bedrock_embedding_models,
+    cohere_embedding_models,
     open_ai_embedding_models,
+    vertex_embedding_models,
 )
-import pytest
 
 from clonellm import LiteLLMEmbeddings
 

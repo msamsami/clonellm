@@ -1,7 +1,7 @@
 from abc import ABCMeta
 from typing import Any, Optional
 
-from litellm import get_llm_provider, get_api_key
+from litellm import get_api_key, get_llm_provider
 
 __all__ = ("LiteLLMMixin",)
 

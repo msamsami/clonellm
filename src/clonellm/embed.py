@@ -1,7 +1,7 @@
-from typing import Any, cast, Optional
+from typing import Any, Optional, cast
 
 from langchain_core.embeddings import Embeddings
-from litellm import embedding, aembedding, all_embedding_models
+from litellm import aembedding, all_embedding_models, embedding
 
 from ._base import LiteLLMMixin
 

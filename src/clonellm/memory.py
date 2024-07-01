@@ -1,4 +1,4 @@
-from typing import cast, Sequence
+from typing import Sequence, cast
 
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import BaseMessage

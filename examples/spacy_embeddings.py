@@ -1,9 +1,9 @@
 import asyncio
 from typing import Any
 
-from langchain_core.embeddings import Embeddings
 import spacy
 import spacy.cli
+from langchain_core.embeddings import Embeddings
 from spacy.language import Language
 
 # !pip install spacy

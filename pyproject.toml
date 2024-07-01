@@ -26,6 +26,7 @@ pytest-asyncio = "*"
 ruff = "^0.4"
 types-setuptools = "^69.0.0.20240106"
 pre-commit = "^3.7.1"
+isort = "5.13.2"
 
 [tool.mypy]
 exclude=["tests", "examples"]
@@ -55,3 +56,8 @@ line-length = 130
 
 [tool.black]
 line-length = 130
+
+[tool.isort]
+atomic = true
+profile = "black"
+skip_gitignore = true

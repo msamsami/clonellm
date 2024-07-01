@@ -1,11 +1,19 @@
+from __future__ import annotations
+
 import codecs
 from os import path
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 from clonellm import __version__
 
-requirements = [s.replace("\n", "").strip() for s in open("requirements.txt").readlines()]
-requirements_dev = list({s.replace("\n", "").strip() for s in open("requirements_dev.txt").readlines()} - set(requirements))
+
+def get_requirements(filename: str) -> list[str]:
+    return [s.replace("\n", "").strip() for s in open(filename).readlines() if not s.strip().startswith("#")]
+
+
+requirements = get_requirements("requirements.txt")
+requirements_dev = list(set(get_requirements("requirements_dev.txt")) - set(requirements))
 
 setup(
     name="clonellm",

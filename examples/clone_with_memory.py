@@ -1,5 +1,6 @@
-from clonellm import CloneLLM, LiteLLMEmbeddings
 from langchain_core.documents import Document
+
+from clonellm import CloneLLM, LiteLLMEmbeddings
 
 RESET_MEMORY_COMMANDS = ["reset memory", "clear memory", "clear your memory", "forget everything"]
 EXIT_COMMANDS = ["exit", "quit"]

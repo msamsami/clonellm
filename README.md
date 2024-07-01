@@ -299,6 +299,7 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [x] Describe `CloneLLM.clear_memory` method in README
 - [x] Add an attribute to `CloneLLM` to return the memory size
 - [x] Add support for fixed size memory
+- [ ] Add support for multiple vector stores for RAG
 - [ ] Add support for custom system prompts
 - [ ] Add documents
 - [x] Add usage examples

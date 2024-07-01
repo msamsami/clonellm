@@ -1,25 +1,32 @@
 from __future__ import annotations
+
 import functools
 import json
 import logging
-from operator import itemgetter
-from typing import Any, AsyncIterator, cast, Iterator, Optional
-from typing_extensions import Self
 import uuid
+from operator import itemgetter
+from typing import Any, AsyncIterator, Iterator, Optional, cast
 
 from langchain.text_splitter import CharacterTextSplitter, TextSplitter
+from langchain_community.chat_models import ChatLiteLLM
+from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableSerializable
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.vectorstores import VectorStoreRetriever
-from langchain_community.chat_models import ChatLiteLLM
-from langchain_community.vectorstores import Chroma
 from litellm import models_by_provider
+from typing_extensions import Self
 
 from ._base import LiteLLMMixin
-from ._prompt import summarize_context_prompt, context_prompt, user_profile_prompt, history_prompt, question_prompt
+from ._prompt import (
+    context_prompt,
+    history_prompt,
+    question_prompt,
+    summarize_context_prompt,
+    user_profile_prompt,
+)
 from ._typing import UserProfile
 from .memory import clear_session_history, get_session_history, get_session_history_size
 
