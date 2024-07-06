@@ -4,6 +4,7 @@ import functools
 import json
 import logging
 import uuid
+from importlib.util import find_spec
 from operator import itemgetter
 from typing import Any, AsyncIterator, Iterator, Optional, cast
 
@@ -15,8 +16,9 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableSerializable
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_core.vectorstores import VectorStoreRetriever
+from langchain_core.vectorstores import VectorStore, VectorStoreRetriever
 from litellm import models_by_provider
+from pydantic import BaseModel
 from typing_extensions import Self
 
 from ._base import LiteLLMMixin
@@ -53,7 +55,7 @@ class CloneLLM(LiteLLMMixin):
     _splitter: TextSplitter
     _session_id: str
     context: str
-    db: Chroma
+    db: VectorStore
 
     _VECTOR_STORE_COLLECTION_NAME = "clonellm"
     _TEXT_SPLITTER_CHUNK_SIZE = 2000
@@ -75,12 +77,21 @@ class CloneLLM(LiteLLMMixin):
         self.memory = memory
         self._internal_init()
 
+    def _check_dependencies(self) -> None:
+        if self.embedding and not find_spec("chromadb"):
+            raise ImportError(
+                "Could not import chromadb. "
+                "Please install CloneLLM with `pip install clonellm[chroma]` "
+                "to use Chroma vector store for RAG."
+            )
+
     def _internal_init(self) -> None:
+        self._check_dependencies()
         self._litellm_kwargs.update({f"{self._llm_provider}_api_key": self.api_key})
         self._llm = ChatLiteLLM(model=self.model, model_name=self.model, **self._litellm_kwargs)
         if self.embedding:
             self._splitter = CharacterTextSplitter(chunk_size=self._TEXT_SPLITTER_CHUNK_SIZE, chunk_overlap=100)
-        self._session_id = str(uuid.uuid4())
+        self._session_id = ""
         self.clear_memory()
 
     @classmethod
@@ -202,7 +213,7 @@ class CloneLLM(LiteLLMMixin):
 
     @property
     def _user_profile(self) -> str:
-        if isinstance(self.user_profile, UserProfile):
+        if isinstance(self.user_profile, BaseModel):
             return self.user_profile.model_dump_json(exclude_none=True)
         elif isinstance(self.user_profile, dict):
             return json.dumps(self.user_profile, default=str)

@@ -10,6 +10,7 @@ from litellm import (
 from clonellm import LiteLLMEmbeddings
 
 API_KEY = "TEST_API_KEY"
+EMBEDDING_MODEL = "text-embedding-3-small"
 
 
 @pytest.mark.parametrize(
@@ -29,13 +30,13 @@ def test_llm_provider(provider: str, models: list[str] | dict[str, str]):
 
 
 def test_api_key():
-    embed = LiteLLMEmbeddings(model="gpt-4o")
+    embed = LiteLLMEmbeddings(model=EMBEDDING_MODEL)
     assert isinstance(embed._api_key, str)
     assert embed._api_key.startswith("sk-")
 
 
 def test_embed_documents(random_text):
-    embed = LiteLLMEmbeddings(model="text-embedding-3-small")
+    embed = LiteLLMEmbeddings(model=EMBEDDING_MODEL)
     documents = [random_text for _ in range(10)]
     embeddings = embed.embed_documents(documents)
     assert isinstance(embeddings, list)
@@ -47,7 +48,7 @@ def test_embed_documents(random_text):
 
 @pytest.mark.asyncio
 async def test_aembed_documents(random_text):
-    embed = LiteLLMEmbeddings(model="text-embedding-3-small")
+    embed = LiteLLMEmbeddings(model=EMBEDDING_MODEL)
     documents = [random_text for _ in range(10)]
     embeddings = await embed.aembed_documents(documents)
     assert isinstance(embeddings, list)
@@ -57,9 +58,9 @@ async def test_aembed_documents(random_text):
             isinstance(v, float)
 
 
-@pytest.mark.parametrize("dimensions", [256, 512])
+@pytest.mark.parametrize("dimensions", [256, 512, 1024])
 def test_embed_documents_with_dimensions(dimensions: int, random_text):
-    embed = LiteLLMEmbeddings(model="text-embedding-3-small", dimensions=dimensions)
+    embed = LiteLLMEmbeddings(model=EMBEDDING_MODEL, dimensions=dimensions)
     documents = [random_text for _ in range(10)]
     embeddings = embed.embed_documents(documents)
     for item in embeddings:
@@ -67,7 +68,7 @@ def test_embed_documents_with_dimensions(dimensions: int, random_text):
 
 
 def test_all_embedding_models():
-    embed = LiteLLMEmbeddings(model="text-embedding-3-small")
+    embed = LiteLLMEmbeddings(model=EMBEDDING_MODEL)
     assert isinstance(embed.all_embedding_models, list)
     for model in embed.all_embedding_models:
         assert isinstance(model, str)

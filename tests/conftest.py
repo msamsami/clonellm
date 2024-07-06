@@ -1,5 +1,6 @@
 import random
 import string
+from unittest.mock import patch
 
 import pytest
 from dotenv import load_dotenv
@@ -25,3 +26,9 @@ def clear_memory_store():
     yield
     # Teardown
     clonellm.memory._store = {}
+
+
+@pytest.fixture
+def mock_find_spec():
+    with patch("clonellm.core.find_spec") as find_spec:
+        yield find_spec

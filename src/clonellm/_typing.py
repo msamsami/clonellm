@@ -21,9 +21,9 @@ class UserProfile(BaseModel):
     country: Optional[str] = None
     phone_number: Optional[str] = None
     email: Optional[str] = None
-    education_experience: Optional[dict[str, Any] | list[dict[str, Any]]] = None
-    work_experience: Optional[dict[str, Any] | list[dict[str, Any]]] = None
-    expertise: Optional[list[str] | dict[str, Any]] = None
+    education_experience: Optional[Any] = None
+    work_experience: Optional[Any] = None
+    expertise: Optional[Any] = None
     home_page: Optional[str] = None
     github_page: Optional[str] = None
     linkedin_page: Optional[str] = None

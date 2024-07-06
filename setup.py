@@ -9,7 +9,7 @@ from clonellm import __version__
 
 
 def get_requirements(filename: str) -> list[str]:
-    return [s.replace("\n", "").strip() for s in open(filename).readlines() if not s.strip().startswith("#")]
+    return [p for line in open(filename).readlines() if (p := line.replace("\n", "").strip()) and not p.startswith("#")]
 
 
 requirements = get_requirements("requirements.txt")
@@ -27,6 +27,7 @@ setup(
     long_description=codecs.open(path.join(path.abspath(path.dirname(__file__)), "README.md"), encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     include_package_data=True,
+    package_data={"clonellm": ["py.typed"]},
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
@@ -43,5 +44,5 @@ setup(
     ],
     python_requires=">=3.9,<3.13",
     install_requires=requirements,
-    extras_require={"dev": requirements_dev},
+    extras_require={"chroma": ["langchain-chroma"], "dev": requirements_dev},
 )
