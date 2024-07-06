@@ -1,12 +1,13 @@
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "clonellm"
-version = "0.0.7"
+version = "0.0.8"
 description = "Python package to create an AI clone of yourself using LLMs."
 packages = [{ from = "src", include = "clonellm" }]
+include = ["src/clonellm/py.typed"]
 license = "MIT"
 authors = ["Mehdi Samsami <mehdisamsami@live.com>"]
 readme = "README.md"
@@ -17,6 +18,8 @@ repository = "https://github.com/msamsami/clonellm"
 python = ">=3.9,<3.13"
 litellm = "^1.36.0"
 langchain = "^0.1.17"
+
+[tool.poetry.group.chroma.dependencies]
 langchain-chroma = "*"
 
 [tool.poetry.group.dev.dependencies]
