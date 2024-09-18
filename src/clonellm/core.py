@@ -10,7 +10,7 @@ from typing import Any, AsyncIterator, Iterator, Optional, cast
 
 from langchain.text_splitter import CharacterTextSplitter, TextSplitter
 from langchain_community.chat_models import ChatLiteLLM
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS, Chroma
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.output_parsers import StrOutputParser
@@ -30,6 +30,7 @@ from ._prompt import (
     user_profile_prompt,
 )
 from ._typing import UserProfile
+from .enums import RagVectorStore
 from .memory import clear_session_history, get_session_history, get_session_history_size
 
 logging.getLogger("langchain_core").setLevel(logging.ERROR)
@@ -44,6 +45,7 @@ class CloneLLM(LiteLLMMixin):
         model (str): The name of the language model to use for text completion.
         documents (list[Document | str]): List of documents related to cloning user to use as context for the language model.
         embedding (Optional[Embeddings]): The embedding function to use for RAG. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
+        vector_store (Optional[str | RagVectorStore]): The vector store to use for embedding-based retrieval. Defaults to None for "faiss".
         user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
         memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
         api_key (Optional[str]): The API key to use. Defaults to None.
@@ -51,13 +53,9 @@ class CloneLLM(LiteLLMMixin):
 
     """
 
-    __is_fitted: bool = False
-    _splitter: TextSplitter
-    _session_id: str
-    context: str
-    db: VectorStore
-
     _VECTOR_STORE_COLLECTION_NAME = "clonellm"
+    _FROM_CLASS_METHOD_KWARG = "_from_class_method"
+    _DEFAULT_VECTOR_STORE = RagVectorStore.FAISS
     _TEXT_SPLITTER_CHUNK_SIZE = 2000
 
     def __init__(
@@ -65,52 +63,95 @@ class CloneLLM(LiteLLMMixin):
         model: str,
         documents: list[Document | str],
         embedding: Optional[Embeddings] = None,
+        vector_store: Optional[str | RagVectorStore] = None,
         user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
         memory: Optional[bool | int] = None,
         api_key: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
-        super().__init__(model, api_key, **kwargs)
         self.embedding = embedding
+        self.vector_store = vector_store
         self.documents = documents
         self.user_profile = user_profile
         self.memory = memory
-        self._internal_init()
+
+        from_class_method: Optional[dict[str, Any]] = kwargs.pop(self._FROM_CLASS_METHOD_KWARG, None)
+        super().__init__(model, api_key, **kwargs)
+        self._internal_init(from_class_method)
+
+    @property
+    def _vector_store(self) -> str:
+        return (self.vector_store or self._DEFAULT_VECTOR_STORE).lower().strip()
 
     def _check_dependencies(self) -> None:
-        if self.embedding and not find_spec("chromadb"):
-            raise ImportError(
-                "Could not import chromadb. "
-                "Please install CloneLLM with `pip install clonellm[chroma]` "
-                "to use Chroma vector store for RAG."
-            )
+        if self.embedding:
+            if self._vector_store == RagVectorStore.Chroma:
+                if not find_spec("chromadb"):
+                    raise ImportError(
+                        "Could not import chromadb. "
+                        "Please install CloneLLM with `pip install clonellm[chroma]` "
+                        "to use Chroma vector store for RAG."
+                    )
+            elif self._vector_store == RagVectorStore.FAISS:
+                if not find_spec("faiss"):
+                    raise ImportError(
+                        "Could not import faiss-cpu. "
+                        "Please install CloneLLM with `pip install clonellm[faiss]` "
+                        "to use FAISS vector store for RAG."
+                    )
+            else:
+                raise ValueError(f"Unsupported vector store '{self.vector_store}' provided.")
 
-    def _internal_init(self) -> None:
+    def _internal_init(self, from_class_method: Optional[dict[str, Any]] = None) -> None:
+        self._splitter: TextSplitter
+        self.context: str
+        self.db: VectorStore
+        self._is_fitted: bool = False
+        self._session_id: str = ""
+
         self._check_dependencies()
         self._litellm_kwargs.update({f"{self._llm_provider}_api_key": self.api_key})
         self._llm = ChatLiteLLM(model=self.model, model_name=self.model, **self._litellm_kwargs)
         if self.embedding:
             self._splitter = CharacterTextSplitter(chunk_size=self._TEXT_SPLITTER_CHUNK_SIZE, chunk_overlap=100)
-        self._session_id = ""
         self.clear_memory()
+
+        if from_class_method:
+            for attr, value in from_class_method.items():
+                setattr(self, attr, value)
 
     @classmethod
     def from_persist_directory(
         cls,
         model: str,
-        persist_directory: str,
+        chroma_persist_directory: str,
         embedding: Optional[Embeddings] = None,
         user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
         memory: Optional[bool | int] = None,
         api_key: Optional[str] = None,
         **kwargs: Any,
     ) -> Self:
-        cls.db = Chroma(
-            collection_name=cls._VECTOR_STORE_COLLECTION_NAME, embedding_function=embedding, persist_directory=persist_directory
+        kwargs.update(
+            {
+                cls._FROM_CLASS_METHOD_KWARG: {
+                    "db": Chroma(
+                        collection_name=cls._VECTOR_STORE_COLLECTION_NAME,
+                        embedding_function=embedding,
+                        persist_directory=chroma_persist_directory,
+                    ),
+                    "_is_fitted": True,
+                }
+            }
         )
-        cls.__is_fitted = True
         return cls(
-            model=model, documents=[], embedding=embedding, user_profile=user_profile, memory=memory, api_key=api_key, **kwargs
+            model=model,
+            documents=[],
+            embedding=embedding,
+            vector_store=RagVectorStore.Chroma,
+            user_profile=user_profile,
+            memory=memory,
+            api_key=api_key,
+            **kwargs,
         )
 
     @classmethod
@@ -123,9 +164,15 @@ class CloneLLM(LiteLLMMixin):
         api_key: Optional[str] = None,
         **kwargs: Any,
     ) -> Self:
-        cls.context = context
-        cls.__is_fitted = True
-        return cls(model=model, documents=[], user_profile=user_profile, memory=memory, api_key=api_key, **kwargs)
+        kwargs.update({cls._FROM_CLASS_METHOD_KWARG: {"context": context, "_is_fitted": True}})
+        return cls(
+            model=model,
+            documents=[],
+            user_profile=user_profile,
+            memory=memory,
+            api_key=api_key,
+            **kwargs,
+        )
 
     def _get_documents(self, documents: Optional[list[Document | str]] = None) -> list[Document]:
         if not (documents or self.documents):
@@ -137,43 +184,52 @@ class CloneLLM(LiteLLMMixin):
             documents_.append(Document(page_content=doc) if isinstance(doc, str) else doc)
         return documents_
 
-    def _get_summarized_context(self, documents: list[Document]) -> None:
+    def _get_summarized_context(self, documents: list[Document]) -> str:
         documents_str = "\n\n".join([doc.page_content for doc in documents])
         chain: RunnableSerializable[Any, str] = (
             {"input": RunnablePassthrough()} | summarize_context_prompt | self._llm | StrOutputParser()
         )
-        self.context = chain.invoke(documents_str)
+        return chain.invoke(documents_str)
 
     def fit(self) -> Self:
         documents = self._get_documents()
         if self.embedding:
             documents = self._splitter.split_documents(documents)
-            self.db = Chroma.from_documents(documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME)
+            if self._vector_store == RagVectorStore.Chroma:
+                self.db = Chroma.from_documents(documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME)
+            elif self._vector_store == RagVectorStore.FAISS:
+                self.db = FAISS.from_documents(documents, self.embedding)
         else:
-            self._get_summarized_context(documents)
-        self.__is_fitted = True
+            self.context = self._get_summarized_context(documents)
+        self._is_fitted = True
         return self
 
-    async def _aget_summarized_context(self, documents: list[Document]) -> None:
+    async def _aget_summarized_context(self, documents: list[Document]) -> str:
         documents_str = "\n\n".join([doc.page_content for doc in documents])
         chain: RunnableSerializable[Any, str] = (
             {"input": RunnablePassthrough()} | summarize_context_prompt | self._llm | StrOutputParser()
         )
-        self.context = await chain.ainvoke(documents_str)
+        return await chain.ainvoke(documents_str)
 
     async def afit(self) -> Self:
         documents = self._get_documents()
         if self.embedding:
             documents = self._splitter.split_documents(documents)
-            self.db = await Chroma.afrom_documents(documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME)
+            if self._vector_store == RagVectorStore.Chroma:
+                self.db = await Chroma.afrom_documents(
+                    documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME
+                )
+            elif self._vector_store == RagVectorStore.FAISS:
+                self.db = await FAISS.afrom_documents(documents, self.embedding)
         else:
-            await self._aget_summarized_context(documents)
-        self.__is_fitted = True
+            self.context = await self._aget_summarized_context(documents)
+        self._is_fitted = True
         return self
 
     def _check_is_fitted(self, from_update: bool = False) -> None:
-        if not self.__is_fitted or (
-            (
+        if (
+            not self._is_fitted
+            or (
                 self.embedding
                 and (
                     not hasattr(self, "db")
@@ -195,7 +251,7 @@ class CloneLLM(LiteLLMMixin):
             documents_ = self._splitter.split_documents(documents_)
             self.db.add_documents(documents_)
         else:
-            self._get_summarized_context(documents_)
+            self.context = self._get_summarized_context(documents_)
         return self
 
     async def aupdate(
@@ -208,7 +264,7 @@ class CloneLLM(LiteLLMMixin):
             documents_ = self._splitter.split_documents(documents_)
             await self.db.aadd_documents(documents_)
         else:
-            await self._aget_summarized_context(documents_)
+            self.context = await self._aget_summarized_context(documents_)
         return self
 
     @property
@@ -329,4 +385,4 @@ class CloneLLM(LiteLLMMixin):
         return cast(dict[str, list[str]], models_by_provider)
 
     def __repr__(self) -> str:
-        return f"CloneLLM<(model='{self.model}', memory={bool(self.memory)})>"
+        return f"CloneLLM<(model='{self.model}'" + (f", memory={self.memory}" * (self.memory is not None)) + ")>"
