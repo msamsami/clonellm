@@ -13,7 +13,7 @@ def get_requirements(filename: str) -> list[str]:
 
 
 requirements = get_requirements("requirements.txt")
-requirements_dev = list(set(get_requirements("requirements_dev.txt")) - set(requirements))
+requirements_dev = get_requirements("requirements_dev.txt")
 
 setup(
     name="clonellm",

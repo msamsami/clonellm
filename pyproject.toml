@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "clonellm"
-version = "0.0.8"
+version = "0.1.0"
 description = "Python package to create an AI clone of yourself using LLMs."
 packages = [{ from = "src", include = "clonellm" }]
 include = ["src/clonellm/py.typed"]
@@ -19,9 +19,11 @@ python = ">=3.9,<3.13"
 litellm = "^1.36.0"
 langchain = "^0.1.17"
 langchain-chroma = {version = "*", optional = true}
+faiss-cpu = {version = "*", optional = true}
 
 [tool.poetry.extras]
 chroma = ["langchain-chroma"]
+faiss = ["faiss-cpu"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
@@ -45,6 +47,7 @@ strict = true
 module = [
     "litellm",
     "openai.lib.streaming",
+    "opentelemetry.*",
 ]
 ignore_missing_imports = true
 
@@ -55,8 +58,6 @@ filterwarnings = ["ignore"]
 [tool.ruff]
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
 line-length = 130
-# Use `ruff linter` to list available linters
-# https://beta.ruff.rs/docs/rules/
 
 [tool.black]
 line-length = 130
