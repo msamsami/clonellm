@@ -2,7 +2,7 @@ import datetime
 
 from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
 
-from clonellm import CloneLLM, LiteLLMEmbeddings, UserProfile
+from clonellm import CloneLLM, LiteLLMEmbeddings, RagVectorStore, UserProfile
 
 # !pip install pypdf
 # !pip install unstructured
@@ -45,6 +45,7 @@ def main():
         model="gpt-4o",
         documents=documents,
         embedding=embedding,
+        vector_store=RagVectorStore.Chroma,
         user_profile=profile,
         memory=MAX_MEMORY_SIZE,
         request_timeout=5,
