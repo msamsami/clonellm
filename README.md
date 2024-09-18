@@ -6,11 +6,11 @@
 </h1>
 <p align="center">
     <p align="center">Create an AI clone of yourself using LLMs.</p>
-</p>   
+</p>
 
 <h4 align="center">
     <a href="https://pypi.org/project/clonellm/" target="_blank">
-        <img src="https://img.shields.io/badge/release-v0.0.8-green" alt="Latest Release">
+        <img src="https://img.shields.io/badge/release-v0.1.0-green" alt="Latest Release">
     </a>
     <a href="https://pypi.org/project/clonellm/" target="_blank">
         <img src="https://img.shields.io/pypi/v/clonellm.svg" alt="PyPI Version">
@@ -29,9 +29,7 @@ A minimal Python package that enables you to create an AI clone of yourself usin
 You can input texts and documents about yourself — including personal information, professional experience, educational background, etc. — which are then embedded into a vector space for dynamic retrieval. This AI clone can act as a virtual assistant or digital representation, capable of handling queries and tasks in a manner that reflects the your own knowledge, tone, style and mannerisms.
 
 ## Installation
-
-### Prerequisites
-Before installing CloneLLM, make sure you have Python 3.9 or newer installed on your machine. 
+Before installing CloneLLM, make sure you have Python 3.9 or newer installed on your machine.
 
 ### PyPi
 ```bash
@@ -58,6 +56,7 @@ pip install .
 ## Usage
 
 ### Getting started
+You can set up a clone of yourself using CloneLLM in just a few lines of code.
 
 **Step 1**. Gather documents that contain relavant information about you. These documents form the base from which your AI clone will learn to mimic your tone, style, and expertise.
 ```python
@@ -69,15 +68,14 @@ documents = [
 ]
 ```
 
-**Step 2**. Initialize an embedding model using CloneLLM's `LiteLLMEmbeddings` or LangChain's embeddings. Then, initialize a clone with your documents, embedding model, and your preferred LLM.
+**Step 2**. Initialize a clone with your documents and your preferred LLM.
 ```python
-from clonellm import CloneLLM, LiteLLMEmbeddings
+from clonellm import CloneLLM
 
-embedding = LiteLLMEmbeddings(model="text-embedding-ada-002")
-clone = CloneLLM(model="gpt-4-turbo", documents=documents, embedding=embedding)
+clone = CloneLLM(model="gpt-4o", documents=documents)
 ```
 
-**Step 3**. Configure environment variables to store API keys for embedding and LLM models.
+**Step 3**. Configure environment variables to store API keys for LLM model.
 ```bash
 export OPENAI_API_KEY=sk-...
 ```
@@ -118,8 +116,22 @@ documents = JSONLoader(
 ).load()
 ```
 
-### Embeddings
-With `LiteLLMEmbeddings`, CloneLLM allows you to utilize embedding models from a variety of providers supported by LiteLLM. Additionally, you can select any preferred embedding model from LangChain's extensive range. Take, for example, the Hugging Face embedding:
+### RAG
+In the basic usage described above, documents are summarized to create a static context for interacting with the LLM. This is the default behavior where the `embedding` and `vector_store` parameters are not specified. For a more advanced usage, you can specify an embedding model and a vector store to implement a RAG-based question-answering system. In this scenario, the documents are embedded and stored in the vector store, allowing them to serve as a dynamic retrieval context for each prompt.
+
+#### Embeddings
+With `LiteLLMEmbeddings`, CloneLLM allows you to utilize embedding models from a variety of providers supported by LiteLLM:
+```python
+from clonellm import CloneLLM, LiteLLMEmbeddings
+import os
+
+os.environ["OPENAI_API_KEY"] = "openai-api-key"
+
+embedding = LiteLLMEmbeddings(model="text-embedding-3-small", dimensions=1024)
+clone = CloneLLM(model="gpt-4o-mini", documents=documents, embedding=embedding)
+```
+
+Additionally, you can select any preferred embedding model from LangChain's extensive range. Take, for example, the Hugging Face embedding:
 ```python
 # !pip install --upgrade --quiet sentence_transformers
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -142,7 +154,19 @@ import os
 os.environ["OPENAI_API_KEY"] = "openai-api-key"
 
 embedding = LlamaCppEmbeddings(model_path="ggml-model-q4_0.bin")
-clone = CloneLLM(model="gpt-3.5-turbo", documents=documents, embedding=embedding)
+clone = CloneLLM(model="gpt-4o-mini", documents=documents, embedding=embedding)
+```
+
+#### Vector store
+Currently, CloneLLM supports [Chroma](https://github.com/chroma-core/chroma) and [FAISS](https://github.com/facebookresearch/faiss) vector stores (default is FAISS). When an embedding model is specified (via the `embedding` parameter), the dynamic context retrieval is enabled and the selected vector store will be initialized and used to store the document embeddings.
+```python
+from clonellm import CloneLLM, LiteLLMEmbeddings, RagVectorStore
+import os
+
+os.environ["OPENAI_API_KEY"] = "openai-api-key"
+
+embedding = LiteLLMEmbeddings(model="text-embedding-3-small")
+clone = CloneLLM(model="gpt-4o", documents=documents, embedding=embedding, vector_store=RagVectorStore.Chroma)
 ```
 
 ### User profile
@@ -187,7 +211,7 @@ clone = CloneLLM(
 ```
 
 ### Conversation history (memory)
-Enable the memory feature to allow your clone to access to the history of conversation. This is simply done by setting `memory` argument to `True` or `-1` for infinite memory or an integer greater than zero for a fixed size of memory:
+Enable the memory feature to allow your clone to access to the history of conversation. This is simply done by setting `memory` argument to `True` or -1 for infinite memory or an integer greater than zero for a fixed size of memory:
 ```python
 from clonellm import CloneLLM
 import os
@@ -300,9 +324,12 @@ Thank you for your interest in CloneLLM. We look forward to seeing what you'll c
 - [x] Add an attribute to `CloneLLM` to return the memory size
 - [x] Add support for fixed size memory
 - [x] Add an optional dependency group for Chroma-based RAG
-- [ ] Add support for additional vector stores for RAG
-- [ ] Add support for custom system prompts
-- [ ] Add documents
+- [x] Add support for FAISS vector store for RAG
+- [ ] Add docstring to `CloneLLM` methods
+- [x] Update README for using different vector stores
+- [x] Fix `from_...` class methods
+- [ ] Add support for customizing system prompts
+- [ ] Add package documentation
 - [x] Add usage examples
 - [x] Add unit tests for non-core modules
 - [x] Add unit tests for core module
