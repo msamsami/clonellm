@@ -1,18 +1,21 @@
+import uuid
+
 import pytest
 from langchain.text_splitter import TextSplitter
 from langchain_community.chat_models import ChatLiteLLM
 from langchain_community.vectorstores import VectorStore
 
-from clonellm import CloneLLM, LiteLLMEmbeddings, UserProfile
+from clonellm import CloneLLM, LiteLLMEmbeddings, RagVectorStore, UserProfile
 from clonellm.memory import get_session_history
 
-LLM_MODEL = "gpt-3.5-turbo"
+LLM_MODEL = "gpt-4o-mini"
 LLM_SETTINGS = dict(temprature=0.1, max_tokens=32)
 EMBEDDING_MODEL = "text-embedding-3-small"
 GENERIC_PROFILE = dict(first_name="Mehdi", last_name="Samsami")
 GENERIC_CONTEXT = "I'm Mehdi Samsami."
 GENERIC_PROMPT = "What football team do you support?"
 embed = LiteLLMEmbeddings(model=EMBEDDING_MODEL)
+EMBEDDING_VECTOR_STORE_PARAMETRIZE = ("embedding", "vector_store"), [(None, None)] + [(embed, e) for e in RagVectorStore]
 
 
 def test_api_key():
@@ -45,38 +48,24 @@ def test_internal_init_without_embedding():
     assert clone._llm.model == LLM_MODEL
     assert not hasattr(clone, "_splitter")
     assert isinstance(clone._session_id, str)
+    assert uuid.UUID(clone._session_id)
 
 
-def test_check_is_fitted_before_fit():
-    clone = CloneLLM(model=LLM_MODEL, documents=[], embedding=embed)
+@pytest.mark.parametrize("embedding", [None, embed])
+def test_check_is_fitted_before_fit(embedding):
+    clone = CloneLLM(model=LLM_MODEL, documents=[], embedding=embedding)
     with pytest.raises(AttributeError):
         clone._check_is_fitted()
     with pytest.raises(AttributeError, match="is not fitted"):
         clone._check_is_fitted()
-    clone.__is_fitted = True
+    clone._is_fitted = True
     with pytest.raises(AttributeError, match="is not fitted"):
         clone._check_is_fitted()
 
 
-def test_check_is_fitted_before_fit_without_embedding():
-    clone = CloneLLM(model=LLM_MODEL, documents=[])
-    with pytest.raises(AttributeError):
-        clone._check_is_fitted()
-    with pytest.raises(AttributeError, match="is not fitted"):
-        clone._check_is_fitted()
-    clone.__is_fitted = True
-    with pytest.raises(AttributeError, match="is not fitted"):
-        clone._check_is_fitted()
-
-
-def test_check_is_fitted_after_fit(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], embedding=embed)
-    clone.fit()
-    assert clone._check_is_fitted() is None
-
-
-def test_check_is_fitted_after_fit_without_embedding(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[random_text])
+@pytest.mark.parametrize(*EMBEDDING_VECTOR_STORE_PARAMETRIZE)
+def test_check_is_fitted_after_fit(embedding, vector_store, random_text):
+    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], embedding=embedding, vector_store=vector_store)
     clone.fit()
     assert clone._check_is_fitted() is None
 
@@ -90,8 +79,9 @@ def test_user_profile():
     assert isinstance(clone._user_profile, str)
 
 
-def test_fit(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[], embedding=embed)
+@pytest.mark.parametrize("vector_store", ["chroma", "faiss"])
+def test_fit(vector_store, random_text):
+    clone = CloneLLM(model=LLM_MODEL, documents=[], embedding=embed, vector_store=vector_store)
     with pytest.raises(ValueError, match="No documents provided"):
         clone.fit()
     clone = CloneLLM(model=LLM_MODEL, documents=[random_text], embedding=embed)
@@ -99,7 +89,8 @@ def test_fit(random_text):
     assert not hasattr(clone, "context")
     assert hasattr(clone, "db")
     assert isinstance(clone.db, VectorStore)
-    assert clone.db._collection.name == clone._VECTOR_STORE_COLLECTION_NAME
+    if clone.vector_store == "chroma":
+        assert clone.db._collection.name == clone._VECTOR_STORE_COLLECTION_NAME
 
 
 def test_fit_without_embedding(random_text):
@@ -118,12 +109,21 @@ def test_from_context():
     assert not hasattr(clone, "db")
     assert hasattr(clone, "context")
     assert isinstance(clone.context, str)
+    assert clone._check_is_fitted() is None
     with pytest.raises(ValueError, match="No documents provided"):
         clone.fit()
 
 
-def test_invoke(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], embedding=embed, user_profile=GENERIC_PROFILE, **LLM_SETTINGS)
+@pytest.mark.parametrize(*EMBEDDING_VECTOR_STORE_PARAMETRIZE)
+def test_invoke(embedding, vector_store, random_text):
+    clone = CloneLLM(
+        model=LLM_MODEL,
+        documents=[random_text],
+        embedding=embedding,
+        vector_store=vector_store,
+        user_profile=GENERIC_PROFILE,
+        **LLM_SETTINGS,
+    )
     clone.fit()
     response = clone.invoke("What's your name?")
     assert isinstance(response, str)
@@ -131,39 +131,37 @@ def test_invoke(random_text):
     assert any(name.lower() in response.lower() for name in GENERIC_PROFILE.values())
 
 
-def test_invoke_without_embedding(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], user_profile=GENERIC_PROFILE, **LLM_SETTINGS)
-    clone.fit()
-    response = clone.invoke("What's your name?")
-    assert isinstance(response, str)
-    assert bool(response)
-    assert any(name.lower() in response.lower() for name in GENERIC_PROFILE.values())
-
-
-def test_invoke_with_memory(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], embedding=embed, memory=True, **LLM_SETTINGS)
-    clone.fit()
-    clone.invoke(GENERIC_PROMPT)
-    assert get_session_history(clone._session_id).messages[-2].content == GENERIC_PROMPT
-
-
-def test_invoke_with_memory_without_embedding(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], memory=True, **LLM_SETTINGS)
+@pytest.mark.parametrize(*EMBEDDING_VECTOR_STORE_PARAMETRIZE)
+def test_invoke_with_memory(embedding, vector_store, random_text):
+    clone = CloneLLM(
+        model=LLM_MODEL, documents=[random_text], embedding=embedding, vector_store=vector_store, memory=True, **LLM_SETTINGS
+    )
     clone.fit()
     clone.invoke(GENERIC_PROMPT)
     assert get_session_history(clone._session_id).messages[-2].content == GENERIC_PROMPT
 
 
 @pytest.mark.asyncio
-async def test_ainvoke_with_memory(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], embedding=embed, memory=True, **LLM_SETTINGS)
+@pytest.mark.parametrize(*EMBEDDING_VECTOR_STORE_PARAMETRIZE)
+async def test_ainvoke_with_memory(embedding, vector_store, random_text):
+    clone = CloneLLM(
+        model=LLM_MODEL, documents=[random_text], embedding=embedding, vector_store=vector_store, memory=True, **LLM_SETTINGS
+    )
     await clone.afit()
     await clone.ainvoke(GENERIC_PROMPT)
     assert get_session_history(clone._session_id).messages[-2].content == GENERIC_PROMPT
 
 
-def test_stream(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], embedding=embed, user_profile=GENERIC_PROFILE, **LLM_SETTINGS)
+@pytest.mark.parametrize(*EMBEDDING_VECTOR_STORE_PARAMETRIZE)
+def test_stream(embedding, vector_store, random_text):
+    clone = CloneLLM(
+        model=LLM_MODEL,
+        documents=[random_text],
+        embedding=embedding,
+        vector_store=vector_store,
+        user_profile=GENERIC_PROFILE,
+        **LLM_SETTINGS,
+    )
     clone.fit()
     response = ""
     for chunk in clone.stream("What's your name?"):
@@ -172,26 +170,11 @@ def test_stream(random_text):
     assert any(name.lower() in response.lower() for name in GENERIC_PROFILE.values())
 
 
-def test_stream_without_embedding(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], user_profile=GENERIC_PROFILE, **LLM_SETTINGS)
-    clone.fit()
-    response = ""
-    for chunk in clone.stream("What's your name?"):
-        assert isinstance(chunk, str)
-        response += chunk
-    assert any(name.lower() in response.lower() for name in GENERIC_PROFILE.values())
-
-
-def test_stream_with_memory(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], embedding=embed, memory=True, **LLM_SETTINGS)
-    clone.fit()
-    for chunk in clone.stream(GENERIC_PROMPT):
-        assert isinstance(chunk, str)
-    assert get_session_history(clone._session_id).messages[-2].content == GENERIC_PROMPT
-
-
-def test_stream_with_memory_without_embedding(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], memory=True, **LLM_SETTINGS)
+@pytest.mark.parametrize(*EMBEDDING_VECTOR_STORE_PARAMETRIZE)
+def test_stream_with_memory(embedding, vector_store, random_text):
+    clone = CloneLLM(
+        model=LLM_MODEL, documents=[random_text], embedding=embedding, vector_store=vector_store, memory=True, **LLM_SETTINGS
+    )
     clone.fit()
     for chunk in clone.stream(GENERIC_PROMPT):
         assert isinstance(chunk, str)
@@ -199,16 +182,20 @@ def test_stream_with_memory_without_embedding(random_text):
 
 
 @pytest.mark.asyncio
-async def test_astream_with_memory(random_text):
-    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], embedding=embed, memory=True, **LLM_SETTINGS)
+@pytest.mark.parametrize(*EMBEDDING_VECTOR_STORE_PARAMETRIZE)
+async def test_astream_with_memory(embedding, vector_store, random_text):
+    clone = CloneLLM(
+        model=LLM_MODEL, documents=[random_text], embedding=embedding, vector_store=vector_store, memory=True, **LLM_SETTINGS
+    )
     await clone.afit()
     async for chunk in clone.astream(GENERIC_PROMPT):
         assert isinstance(chunk, str)
     assert get_session_history(clone._session_id).messages[-2].content == GENERIC_PROMPT
 
 
-def test_memory_size():
-    clone = CloneLLM.from_context(model=LLM_MODEL, context=GENERIC_CONTEXT, user_profile=GENERIC_PROFILE, memory=True)
+def test_memory_size(random_text):
+    clone = CloneLLM(model=LLM_MODEL, documents=[random_text], user_profile=GENERIC_PROFILE, memory=True)
+    clone.fit()
     assert clone.memory_size == 0
     clone.invoke("What's your first name?")
     assert clone.memory_size == 2
