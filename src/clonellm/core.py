@@ -10,7 +10,7 @@ from typing import Any, AsyncIterator, Iterator, Optional, cast
 
 from langchain.text_splitter import CharacterTextSplitter, TextSplitter
 from langchain_community.chat_models import ChatLiteLLM
-from langchain_community.vectorstores import FAISS, Chroma
+from langchain_community.vectorstores import FAISS, Chroma, InMemoryVectorStore
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.output_parsers import StrOutputParser
@@ -45,7 +45,7 @@ class CloneLLM(LiteLLMMixin):
         model (str): The name of the language model to use for text completion.
         documents (list[Document | str]): List of documents related to cloning user to use as context for the language model.
         embedding (Optional[Embeddings]): The embedding function to use for RAG. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
-        vector_store (Optional[str | RagVectorStore]): The vector store to use for embedding-based retrieval. Defaults to None for "faiss".
+        vector_store (Optional[str | RagVectorStore]): The vector store to use for embedding-based retrieval. Defaults to None for "inmemory" vector store.
         user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
         memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
         api_key (Optional[str]): The API key to use. Defaults to None.
@@ -55,7 +55,7 @@ class CloneLLM(LiteLLMMixin):
 
     _VECTOR_STORE_COLLECTION_NAME = "clonellm"
     _FROM_CLASS_METHOD_KWARG = "_from_class_method"
-    _DEFAULT_VECTOR_STORE = RagVectorStore.FAISS
+    _DEFAULT_VECTOR_STORE = RagVectorStore.InMemory
     _TEXT_SPLITTER_CHUNK_SIZE = 2000
 
     def __init__(
@@ -99,6 +99,8 @@ class CloneLLM(LiteLLMMixin):
                         "Please install CloneLLM with `pip install clonellm[faiss]` "
                         "to use FAISS vector store for RAG."
                     )
+            elif self._vector_store == RagVectorStore.InMemory:
+                pass
             else:
                 raise ValueError(f"Unsupported vector store '{self.vector_store}' provided.")
 
@@ -199,6 +201,8 @@ class CloneLLM(LiteLLMMixin):
                 self.db = Chroma.from_documents(documents, self.embedding, collection_name=self._VECTOR_STORE_COLLECTION_NAME)
             elif self._vector_store == RagVectorStore.FAISS:
                 self.db = FAISS.from_documents(documents, self.embedding)
+            elif self._vector_store == RagVectorStore.InMemory:
+                self.db = InMemoryVectorStore.from_documents(documents, self.embedding)
         else:
             self.context = self._get_summarized_context(documents)
         self._is_fitted = True
@@ -221,6 +225,8 @@ class CloneLLM(LiteLLMMixin):
                 )
             elif self._vector_store == RagVectorStore.FAISS:
                 self.db = await FAISS.afrom_documents(documents, self.embedding)
+            elif self._vector_store == RagVectorStore.InMemory:
+                self.db = await InMemoryVectorStore.afrom_documents(documents, self.embedding)
         else:
             self.context = await self._aget_summarized_context(documents)
         self._is_fitted = True
@@ -363,7 +369,7 @@ class CloneLLM(LiteLLMMixin):
     @property
     def memory_size(self) -> int:
         """
-        Returns the size of clone memory, i.e., the length of conversation history.
+        Returns the size of clone memory (length of conversation history).
         """
         return get_session_history_size(self._session_id)
 
@@ -382,6 +388,9 @@ class CloneLLM(LiteLLMMixin):
 
     @property
     def models_by_provider(self) -> dict[str, list[str]]:
+        """
+        Returns the available models grouped by their providers.
+        """
         return cast(dict[str, list[str]], models_by_provider)
 
     def __repr__(self) -> str:
