@@ -4,14 +4,14 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "clonellm"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python package to create an AI clone of yourself using LLMs."
 packages = [{ from = "src", include = "clonellm" }]
 include = ["src/clonellm/py.typed"]
 license = "MIT"
 authors = ["Mehdi Samsami <mehdisamsami@live.com>"]
 readme = "README.md"
-keywords = ["llm", "language models", "nlp", "rag", "ai", "ai clone"]
+keywords = ["python", "ai", "llm", "language models", "nlp", "rag", "clone"]
 repository = "https://github.com/msamsami/clonellm"
 
 [tool.poetry.dependencies]

@@ -10,7 +10,7 @@
 
 <h4 align="center">
     <a href="https://pypi.org/project/clonellm/" target="_blank">
-        <img src="https://img.shields.io/badge/release-v0.1.0-green" alt="Latest Release">
+        <img src="https://img.shields.io/badge/release-v0.2.0-green" alt="Latest Release">
     </a>
     <a href="https://pypi.org/project/clonellm/" target="_blank">
         <img src="https://img.shields.io/pypi/v/clonellm.svg" alt="PyPI Version">
@@ -158,15 +158,21 @@ clone = CloneLLM(model="gpt-4o-mini", documents=documents, embedding=embedding)
 ```
 
 #### Vector store
-Currently, CloneLLM supports [Chroma](https://github.com/chroma-core/chroma) and [FAISS](https://github.com/facebookresearch/faiss) vector stores (default is FAISS). When an embedding model is specified (via the `embedding` parameter), the dynamic context retrieval is enabled and the selected vector store will be initialized and used to store the document embeddings.
+Currently, CloneLLM supports the following vector stores:
+- [Chroma](https://github.com/chroma-core/chroma)
+- [FAISS](https://github.com/facebookresearch/faiss)
+- [InMemory](https://python.langchain.com/api_reference/core/vectorstores/langchain_core.vectorstores.in_memory.InMemoryVectorStore.html) (default)
+
+When an embedding model is specified (via the `embedding` parameter), the dynamic context retrieval is enabled and the selected vector store will be initialized and used to store the document embeddings.
 ```python
+# !pip install clonellm[faiss]
 from clonellm import CloneLLM, LiteLLMEmbeddings, RagVectorStore
 import os
 
 os.environ["OPENAI_API_KEY"] = "openai-api-key"
 
 embedding = LiteLLMEmbeddings(model="text-embedding-3-small")
-clone = CloneLLM(model="gpt-4o", documents=documents, embedding=embedding, vector_store=RagVectorStore.Chroma)
+clone = CloneLLM(model="gpt-4o", documents=documents, embedding=embedding, vector_store=RagVectorStore.FAISS)
 ```
 
 ### User profile
@@ -197,6 +203,7 @@ profile = {
 
 Finnaly:
 ```python
+# !pip install clonellm[chroma]
 from clonellm import CloneLLM
 import os
 
@@ -206,6 +213,7 @@ clone = CloneLLM(
     model="claude-3-opus-20240229",
     documents=documents,
     embedding=embedding,
+    vector_store=RagVectorStore.Chroma,
     user_profile=profile,
 )
 ```
