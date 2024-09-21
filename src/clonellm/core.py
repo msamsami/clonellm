@@ -45,7 +45,7 @@ class CloneLLM(LiteLLMMixin):
         model (str): The name of the language model to use for text completion.
         documents (list[Document | str]): List of documents related to cloning user to use as context for the language model.
         embedding (Optional[Embeddings]): The embedding function to use for RAG. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
-        vector_store (Optional[str | RagVectorStore]): The vector store to use for embedding-based retrieval. Defaults to None for "inmemory" vector store.
+        vector_store (Optional[str | RagVectorStore]): The vector store to use for embedding-based retrieval. Defaults to None for "in-memory" vector store.
         user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
         memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
         api_key (Optional[str]): The API key to use. Defaults to None.
