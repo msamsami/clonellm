@@ -5,6 +5,7 @@ from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
 
 from clonellm import CloneLLM, LiteLLMEmbeddings, RagVectorStore, UserProfile
 
+# !pip install clonellm[chroma]
 # !pip install pypdf
 # !pip install unstructured
 

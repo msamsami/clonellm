@@ -10,8 +10,9 @@ from langchain_community.document_loaders import (
 )
 from langchain_core.documents import Document
 
-from clonellm import CloneLLM, LiteLLMEmbeddings
+from clonellm import CloneLLM, LiteLLMEmbeddings, RagVectorStore
 
+# !pip install clonellm[faiss]
 # !pip install jq
 # !pip install pypdf
 # !pip install unstructured
@@ -28,7 +29,7 @@ async def main():
     documents += await PyPDFLoader("my_cv.pdf").aload()
 
     embedding = LiteLLMEmbeddings(model="text-embedding-3-small")
-    clone = CloneLLM(model="gpt-4o", documents=documents, embedding=embedding)
+    clone = CloneLLM(model="gpt-4o-mini", documents=documents, embedding=embedding, vector_store=RagVectorStore.FAISS)
     await clone.afit()
 
     new_documents = await JSONLoader(file_path="chat.json", jq_schema=".messages[].content", text_content=False).aload()

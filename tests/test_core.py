@@ -10,12 +10,12 @@ from clonellm.memory import get_session_history
 
 LLM_MODEL = "gpt-4o-mini"
 LLM_SETTINGS = dict(temprature=0.1, max_tokens=32)
-EMBEDDING_MODEL = "text-embedding-3-small"
 GENERIC_PROFILE = dict(first_name="Mehdi", last_name="Samsami")
 GENERIC_CONTEXT = "I'm Mehdi Samsami."
 GENERIC_PROMPT = "What football team do you support?"
+EMBEDDING_MODEL = "text-embedding-3-small"
 embed = LiteLLMEmbeddings(model=EMBEDDING_MODEL)
-EMBEDDING_VECTOR_STORE_PARAMETRIZE = ("embedding", "vector_store"), [(None, None)] + [(embed, e) for e in RagVectorStore]
+EMBEDDING_VECTOR_STORE_PARAMETRIZE = ("embedding", "vector_store"), [(None, None)] + [(embed, vs) for vs in RagVectorStore]
 
 
 def test_api_key():
@@ -35,10 +35,11 @@ def test_internal_init(mock_find_spec):
     assert isinstance(clone._session_id, str)
 
 
-def test_internal_init_with_missing_dependencies(mock_find_spec):
+@pytest.mark.parametrize("vector_store", [vs for vs in RagVectorStore if vs != RagVectorStore.InMemory])
+def test_internal_init_with_missing_dependencies(vector_store, mock_find_spec):
     mock_find_spec.return_value = None
     with pytest.raises(ImportError, match="Could not import"):
-        CloneLLM(model=LLM_MODEL, documents=[], embedding=embed)
+        CloneLLM(model=LLM_MODEL, documents=[], embedding=embed, vector_store=vector_store)
 
 
 def test_internal_init_without_embedding():

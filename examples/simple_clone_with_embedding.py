@@ -6,7 +6,7 @@ EXIT_COMMANDS = ["exit", "quit"]
 def main():
     documents = [open("about_me.txt").read()]
     embedding = LiteLLMEmbeddings(model="text-embedding-3-small")
-    clone = CloneLLM(model="gpt-3.5-turbo", documents=documents, embedding=embedding)
+    clone = CloneLLM(model="gpt-4o-mini", documents=documents, embedding=embedding)
     clone.fit()
 
     while True:
