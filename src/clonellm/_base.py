@@ -7,12 +7,10 @@ __all__ = ("LiteLLMMixin",)
 
 
 class LiteLLMMixin(metaclass=ABCMeta):
-    _litellm_kwargs: dict[str, Any] = {}
-
     def __init__(self, model: str, api_key: Optional[str] = None, **kwargs: Any) -> None:
         self.model = model
         self.api_key = api_key
-        self._litellm_kwargs = kwargs
+        self._litellm_kwargs: dict[str, Any] = kwargs
 
     @property
     def _llm_provider(self) -> str:

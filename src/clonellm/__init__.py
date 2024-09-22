@@ -1,5 +1,5 @@
 __author__ = "Mehdi Samsami"
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 from ._typing import UserProfile
 from .core import CloneLLM
