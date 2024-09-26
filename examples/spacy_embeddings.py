@@ -17,14 +17,13 @@ class SpacyEmbeddings(Embeddings):
         **kwargs: Additional keyword arguments supported by spaCy's `load` function.
     """
 
-    _nlp: Language
-
     def __init__(self, model: str, **kwargs: Any) -> None:
         self.model = model
         self._spacy_kwargs = kwargs
         self._internal_init()
 
     def _internal_init(self):
+        self._nlp: Language
         try:
             self._nlp = spacy.load(self.model, **self._spacy_kwargs)
         except OSError:
