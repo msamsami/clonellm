@@ -29,9 +29,9 @@ from ._prompt import (
     summarize_context_prompt,
     user_profile_prompt,
 )
-from ._typing import UserProfile
 from .enums import RagVectorStore
 from .memory import clear_session_history, get_session_history, get_session_history_size
+from .models import UserProfile
 
 logging.getLogger("langchain_core").setLevel(logging.ERROR)
 
@@ -42,8 +42,8 @@ class CloneLLM(LiteLLMMixin):
     """Creates an LLM clone of a user based on provided user profile and related context.
 
     Args:
-        model (str): The name of the language model to use for text completion.
-        documents (list[Document | str]): List of documents related to cloning user to use as context for the language model.
+        model (str): Name of the language model.
+        documents (list[Document | str]): List of documents or strings related to cloning user to use for LLM context.
         embedding (Optional[Embeddings]): The embedding function to use for RAG. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
         vector_store (Optional[str | RagVectorStore]): The vector store to use for embedding-based retrieval. Defaults to None for "in-memory" vector store.
         user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
@@ -133,6 +133,20 @@ class CloneLLM(LiteLLMMixin):
         api_key: Optional[str] = None,
         **kwargs: Any,
     ) -> Self:
+        """Creates an instance of CloneLLM by loading a Chroma vector store from a persistent directory.
+
+        Args:
+            model (str): Name of the language model.
+            chroma_persist_directory (str): Directory path to the persisted Chroma vector store.
+            embedding (Optional[Embeddings]): The embedding function to use for Chroma store. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
+            user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
+            memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
+            api_key (Optional[str]): The API key to use. Defaults to None.
+            **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
+
+        Returns:
+            CloneLLM: An instance of CloneLLM with Chroma-based retrieval.
+        """
         kwargs.update(
             {
                 cls._FROM_CLASS_METHOD_KWARG: {
@@ -166,6 +180,19 @@ class CloneLLM(LiteLLMMixin):
         api_key: Optional[str] = None,
         **kwargs: Any,
     ) -> Self:
+        """Creates an instance of CloneLLM using a summarized context string instead of documents.
+
+        Args:
+            model (str): Name of the language model.
+            context (str): Pre-summarized context string for the language model.
+            user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
+            memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
+            api_key (Optional[str]): The API key to use. Defaults to None.
+            **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
+
+        Returns:
+            CloneLLM instance using the provided context.
+        """
         kwargs.update({cls._FROM_CLASS_METHOD_KWARG: {"context": context, "_is_fitted": True}})
         return cls(
             model=model,
@@ -194,6 +221,13 @@ class CloneLLM(LiteLLMMixin):
         return chain.invoke(documents_str)
 
     def fit(self) -> Self:
+        """Fits the CloneLLM instance by processing the provided documents.
+
+        Embeds the documents for retrieval using the selected vector store or generates a summarized context.
+
+        Returns:
+            CloneLLM: Fitted CloneLLM instance.
+        """
         documents = self._get_documents()
         if self.embedding:
             documents = self._splitter.split_documents(documents)
@@ -216,6 +250,13 @@ class CloneLLM(LiteLLMMixin):
         return await chain.ainvoke(documents_str)
 
     async def afit(self) -> Self:
+        """Asynchronously fits the CloneLLM instance by processing the provided documents.
+
+        Embeds the documents for retrieval or generates a summarized context.
+
+        Returns:
+            CloneLLM: Fitted CloneLLM instance.
+        """
         documents = self._get_documents()
         if self.embedding:
             documents = self._splitter.split_documents(documents)
@@ -251,6 +292,14 @@ class CloneLLM(LiteLLMMixin):
         self,
         documents: list[Document | str],
     ) -> Self:
+        """Updates the CloneLLM with additional documents, either embedding them or updating the context.
+
+        Args:
+            documents (list[Document | str]): Additional documents to add to the model.
+
+        Returns:
+            CloneLLM: Updated CloneLLM instance.
+        """
         self._check_is_fitted(from_update=True)
         documents_ = self._get_documents(documents)
         if self.embedding:
@@ -264,6 +313,14 @@ class CloneLLM(LiteLLMMixin):
         self,
         documents: list[Document | str],
     ) -> Self:
+        """Asynchronously updates the CloneLLM with additional documents, either embedding them or updating the context.
+
+        Args:
+            documents (list[Document | str]): Additional documents to add to the model.
+
+        Returns:
+            CloneLLM: Updated CloneLLM instance.
+        """
         self._check_is_fitted(from_update=True)
         documents_ = self._get_documents(documents)
         if self.embedding:
@@ -321,6 +378,16 @@ class CloneLLM(LiteLLMMixin):
         )
 
     def invoke(self, prompt: str) -> str:
+        """Invokes the cloned language model and generates a response based on the given prompt.
+
+        This method uses the underlying language model to simulate responses as if coming from the cloned user profile.
+
+        Args:
+            prompt (str): Input prompt for the cloned language model.
+
+        Returns:
+            str: The generated response from the language model as the cloned user.
+        """
         self._check_is_fitted()
         if self.memory:
             rag_chain_with_history = self._get_rag_chain_with_history()
@@ -330,6 +397,16 @@ class CloneLLM(LiteLLMMixin):
         return rag_chain.invoke(prompt)
 
     async def ainvoke(self, prompt: str) -> str:
+        """Asynchronously invokes the cloned language model and generates a response based on the given prompt.
+
+        This method uses the underlying language model to simulate responses as if coming from the cloned user profile.
+
+        Args:
+            prompt (str): Input prompt for the cloned language model.
+
+        Returns:
+            str: The generated response from the language model as the cloned user.
+        """
         self._check_is_fitted()
         if self.memory:
             rag_chain_with_history = self._get_rag_chain_with_history()
@@ -341,6 +418,14 @@ class CloneLLM(LiteLLMMixin):
         return await rag_chain.ainvoke(prompt)
 
     def stream(self, prompt: str) -> Iterator[str]:
+        """Streams responses from the cloned language model for a given prompt, returning the output in chunks.
+
+        Args:
+            prompt (str): Input prompt for the cloned language model.
+
+        Returns:
+            Iterator[str]: An iterator over the streamed response chunks from the cloned language model.
+        """
         self._check_is_fitted()
         if self.memory:
             rag_chain_with_history = self._get_rag_chain_with_history()
@@ -354,6 +439,14 @@ class CloneLLM(LiteLLMMixin):
                 yield chunk
 
     async def astream(self, prompt: str) -> AsyncIterator[str]:
+        """Asynchronously streams responses from the cloned language model for a given prompt, returning the output in chunks.
+
+        Args:
+            prompt (str): Input prompt for the cloned language model.
+
+        Returns:
+            AsyncIterator[str]: An asynchronous iterator over the streamed response chunks from the cloned language model.
+        """
         self._check_is_fitted()
         if self.memory:
             rag_chain_with_history = self._get_rag_chain_with_history()
@@ -369,20 +462,20 @@ class CloneLLM(LiteLLMMixin):
     @property
     def memory_size(self) -> int:
         """
-        Returns the size of clone memory (length of conversation history).
+        Returns the size of the conversation memory (number of stored messages).
         """
         return get_session_history_size(self._session_id)
 
     def clear_memory(self) -> None:
         """
-        Clears the clone memory, i.e., conversation history.
+        Clears the conversation memory for the cloned language model.
         """
         clear_session_history(self._session_id)
         self._session_id = str(uuid.uuid4())
 
     def reset_memory(self) -> None:
         """
-        Clears the clone memory, i.e., conversation history.
+        Resets the conversation memory by clearing all stored history.
         """
         self.clear_memory()
 
