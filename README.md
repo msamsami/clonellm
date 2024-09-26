@@ -10,7 +10,7 @@
 
 <h4 align="center">
     <a href="https://pypi.org/project/clonellm/" target="_blank">
-        <img src="https://img.shields.io/badge/release-v0.2.1-green" alt="Latest Release">
+        <img src="https://img.shields.io/badge/release-v0.2.2-green" alt="Latest Release">
     </a>
     <a href="https://pypi.org/project/clonellm/" target="_blank">
         <img src="https://img.shields.io/pypi/v/clonellm.svg" alt="PyPI Version">
@@ -314,32 +314,4 @@ If you find CloneLLM useful, please consider showing your support in one of the 
 - 💡 **Contribute:** Submit pull requests to help improve the codebase, whether it's adding new features, fixing bugs, or improving documentation.
 - 📰 **Share:** Post about CloneLLM on LinkedIn or other social platforms.
 
-Thank you for your interest in CloneLLM. We look forward to seeing what you'll create with your AI clone!
-
-## TODO
-- [x] Add pre commit configuration file
-- [x] Add setup.py script
-- [x] Add support for conversation history
-- [x] Add support for RAG with no embedding (use a summary of documents as the context)
-- [x] Add support for string documents
-- [x] Fix mypy errors
-- [x] Rename `completion` methods to `invoke`
-- [x] Add support for streaming completion
-- [x] Make `LiteLLMEmbeddings.all_embedding_models` a property
-- [x] Add an attribute to `CloneLLM` to return supported models
-- [x] Add initial version of README
-- [x] Describe `CloneLLM.clear_memory` method in README
-- [x] Add an attribute to `CloneLLM` to return the memory size
-- [x] Add support for fixed size memory
-- [x] Add an optional dependency group for Chroma-based RAG
-- [x] Add support for FAISS vector store for RAG
-- [ ] Add docstring to `CloneLLM` methods
-- [x] Update README for using different vector stores
-- [x] Fix `from_...` class methods
-- [ ] Add support for customizing system prompts
-- [ ] Add package documentation
-- [x] Add usage examples
-- [x] Add unit tests for non-core modules
-- [x] Add unit tests for core module
-- [x] Add GitHub workflow to run tests on PR
-- [x] Add GitHub workflow to publish to PyPI on release
+Thank you for your interest in CloneLLM. We look forward to seeing you create your digital twin!
