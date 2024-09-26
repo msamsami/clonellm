@@ -41,9 +41,18 @@ class InMemoryHistory(BaseChatMessageHistory, BaseModel):
 
     @property
     def memory_size(self) -> int:
+        """
+        Returns the number of messages in memory.
+        """
         return len(self.messages)
 
+    def __len__(self) -> int:
+        return self.memory_size
+
     def clear(self) -> None:
+        """
+        Clears the message history (memory).
+        """
         self.messages = []
 
 
