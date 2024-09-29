@@ -1,4 +1,4 @@
-from typing import Sequence, cast
+from typing import Any, Sequence, cast
 
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import BaseMessage
@@ -35,7 +35,7 @@ class InMemoryHistory(BaseChatMessageHistory, BaseModel):
         self.messages = cast(list[BaseMessage], self._trim_messages(self.messages, self.max_memory_size))
 
     @root_validator
-    def trim_messages_upon_init(cls, values):
+    def _trim_messages_upon_init(cls, values: dict[str, Any]) -> dict[str, Any]:
         values["messages"] = cls._trim_messages(values["messages"], values["max_memory_size"])
         return values
 
