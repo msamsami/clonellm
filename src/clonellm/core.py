@@ -49,7 +49,7 @@ class CloneLLM(LiteLLMMixin):
         user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
         memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
         api_key (Optional[str]): The API key to use. Defaults to None.
-        **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
+        **kwargs (Any): Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
     """
 
@@ -142,7 +142,7 @@ class CloneLLM(LiteLLMMixin):
             user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
             memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
             api_key (Optional[str]): The API key to use. Defaults to None.
-            **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
+            **kwargs (Any): Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
         Returns:
             CloneLLM: An instance of CloneLLM with Chroma-based retrieval.
@@ -188,7 +188,7 @@ class CloneLLM(LiteLLMMixin):
             user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
             memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
             api_key (Optional[str]): The API key to use. Defaults to None.
-            **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
+            **kwargs (Any): Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
         Returns:
             CloneLLM instance using the provided context.

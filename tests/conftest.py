@@ -21,10 +21,8 @@ def random_text(request) -> str:
 
 @pytest.fixture
 def clear_memory_store():
-    # Setup
     clonellm.memory._store = {}
     yield
-    # Teardown
     clonellm.memory._store = {}
 
 

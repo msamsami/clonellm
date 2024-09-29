@@ -15,7 +15,7 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
         model (str): The embedding model to use.
         api_key (Optional[str]): The API key to use. Defaults to None.
         dimensions (Optional[int]): The number of dimensions the resulting output embeddings should have. Defaults to None.
-        **kwargs: Additional keyword arguments supported by the `litellm.embedding` and `litellm.aembedding` functions.
+        **kwargs (Any): Additional keyword arguments supported by the `litellm.embedding` and `litellm.aembedding` functions.
 
     """
 
