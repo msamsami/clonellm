@@ -44,5 +44,5 @@ setup(
     ],
     python_requires=">=3.9,<3.13",
     install_requires=requirements,
-    extras_require={"chroma": ["langchain-chroma"], "dev": requirements_dev},
+    extras_require={"chroma": ["langchain-chroma"], "faiss": ["faiss-cpu"], "dev": requirements_dev},
 )
