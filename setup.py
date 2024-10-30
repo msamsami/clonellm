@@ -19,7 +19,7 @@ setup(
     name="clonellm",
     version=__version__,
     description="Python package to create an AI clone of yourself using LLMs.",
-    keywords=["python", "ai", "llm", "language models", "nlp", "rag", "clone"],
+    keywords=["python", "ai", "llm", "rag"],
     author="Mehdi Samsami",
     author_email="mehdisamsami@live.com",
     license="MIT License",

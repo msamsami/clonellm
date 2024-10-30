@@ -11,7 +11,7 @@ include = ["src/clonellm/py.typed"]
 license = "MIT"
 authors = ["Mehdi Samsami <mehdisamsami@live.com>"]
 readme = "README.md"
-keywords = ["python", "ai", "llm", "language models", "nlp", "rag", "clone"]
+keywords = ["python", "ai", "llm", "rag"]
 repository = "https://github.com/msamsami/clonellm"
 
 [tool.poetry.dependencies]
@@ -29,10 +29,10 @@ faiss = ["faiss-cpu"]
 pytest = "*"
 mypy = "*"
 pytest-asyncio = "*"
-ruff = "^0.4"
+ruff = "<1.0.0"
 types-setuptools = "^69.0.0.20240106"
-pre-commit = "^3.7.1"
-isort = "5.13.2"
+pre-commit = "*"
+isort = "*"
 
 [tool.mypy]
 exclude=["tests", "examples"]
@@ -48,6 +48,7 @@ module = [
     "litellm",
     "openai.lib.streaming",
     "opentelemetry.*",
+    "google",
 ]
 ignore_missing_imports = true
 
@@ -56,7 +57,7 @@ testpaths = ["tests"]
 filterwarnings = ["ignore"]
 
 [tool.ruff]
-include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
+include = ["*.py", "*.pyi", "**/pyproject.toml"]
 line-length = 130
 
 [tool.black]
