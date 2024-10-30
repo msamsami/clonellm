@@ -10,6 +10,12 @@ from clonellm.memory import (
 )
 
 
+def test_history_initialization_without_messages():
+    history = InMemoryHistory()
+    assert history.messages == []
+    assert history.memory_size == 0
+
+
 def test_history_add_message():
     history = InMemoryHistory()
     history.add_message(HumanMessage(content="Hello"))
@@ -22,8 +28,19 @@ def test_history_last_message():
     assert history.messages[-1] == SystemMessage(content="two")
 
 
+def test_history_with_edge_max_memory_size():
+    history = InMemoryHistory(max_memory_size=1)
+    history.add_messages([HumanMessage(content="Hello"), AIMessage(content="Hi")])
+    assert history.messages == [AIMessage(content="Hi")]
+
+    history = InMemoryHistory(max_memory_size=0)
+    history.add_messages([HumanMessage(content="Hello"), AIMessage(content="Hi")])
+    assert history.messages == []
+
+
 def test_history_memory_size():
     history = InMemoryHistory()
+    assert history.memory_size == 0
     history.add_message(HumanMessage(content="Hello"))
     assert history.memory_size == len(history.messages) == 1
     history.add_message(AIMessage(content="Hi"))
