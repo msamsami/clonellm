@@ -15,7 +15,7 @@ keywords = ["python", "ai", "llm", "rag"]
 repository = "https://github.com/msamsami/clonellm"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.13"
+python = ">=3.10,<3.13"
 litellm = "^1.36.0"
 langchain = "^0.1.17"
 langchain-chroma = {version = "*", optional = true}
