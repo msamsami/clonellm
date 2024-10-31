@@ -1,8 +1,7 @@
-from __future__ import annotations
-
 import functools
 import json
 import logging
+import sys
 import uuid
 from importlib.util import find_spec
 from operator import itemgetter
@@ -19,7 +18,11 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.vectorstores import VectorStore, VectorStoreRetriever
 from litellm import models_by_provider
 from pydantic import BaseModel
-from typing_extensions import Self
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from ._base import LiteLLMMixin
 from ._prompt import (

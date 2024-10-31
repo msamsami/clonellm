@@ -10,13 +10,13 @@
 
 <h4 align="center">
     <a href="https://pypi.org/project/clonellm/" target="_blank">
-        <img src="https://img.shields.io/badge/release-v0.2.3-green" alt="Latest Release">
+        <img src="https://img.shields.io/badge/release-v0.2.4-green" alt="Latest Release">
     </a>
     <a href="https://pypi.org/project/clonellm/" target="_blank">
         <img src="https://img.shields.io/pypi/v/clonellm.svg" alt="PyPI Version">
     </a>
     <a target="_blank">
-        <img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue" alt="Python Versions">
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Python Versions">
     </a>
     <a target="_blank">
         <img src="https://img.shields.io/pypi/l/clonellm" alt="PyPI License">
@@ -29,7 +29,7 @@ A minimal Python package that enables you to create an AI clone of yourself usin
 You can input texts and documents about yourself — including personal information, professional experience, educational background, etc. — which are then embedded into a vector space for dynamic retrieval. This AI clone can act as a virtual assistant or digital representation, capable of handling queries and tasks in a manner that reflects the your own knowledge, tone, style and mannerisms.
 
 ## Installation
-Before installing CloneLLM, make sure you have Python 3.9 or newer installed on your machine.
+Before installing CloneLLM, make sure you have Python 3.10 or newer installed on your machine.
 
 ### PyPi
 ```bash

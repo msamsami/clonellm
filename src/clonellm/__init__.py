@@ -1,5 +1,5 @@
 __author__ = "Mehdi Samsami"
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 
 from .core import CloneLLM
 from .embed import LiteLLMEmbeddings
