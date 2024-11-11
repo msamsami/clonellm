@@ -1,11 +1,10 @@
 import asyncio
 
 from clonellm import CloneLLM, LiteLLMEmbeddings
+from examples.const import EXIT_COMMANDS
 
-EXIT_COMMANDS = ["exit", "quit"]
 
-
-async def main():
+async def main() -> None:
     documents = [open("about_me.txt").read()]
     embedding = LiteLLMEmbeddings(model="text-embedding-3-small")
     clone = CloneLLM(model="gpt-4o-mini", documents=documents, embedding=embedding)

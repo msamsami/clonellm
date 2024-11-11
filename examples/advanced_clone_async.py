@@ -4,17 +4,16 @@ import datetime
 from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
 
 from clonellm import CloneLLM, LiteLLMEmbeddings, RagVectorStore, UserProfile
+from examples.const import EXIT_COMMANDS, RESET_MEMORY_COMMANDS
 
 # !pip install clonellm[chroma]
 # !pip install pypdf
 # !pip install unstructured
 
-RESET_MEMORY_COMMANDS = ["reset memory", "clear memory", "clear your memory", "forget everything"]
-EXIT_COMMANDS = ["exit", "quit"]
 MAX_MEMORY_SIZE = 20
 
 
-async def main():
+async def main() -> None:
     documents = [open("about_me.txt").read()]
     documents += await PyPDFLoader("my_cv.pdf").aload()
     documents += await DirectoryLoader("docs/", glob="**/*.md").aload()

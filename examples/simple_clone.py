@@ -1,9 +1,8 @@
 from clonellm import CloneLLM
+from examples.const import EXIT_COMMANDS
 
-EXIT_COMMANDS = ["exit", "quit"]
 
-
-def main():
+def main() -> None:
     documents = [open("about_me.txt").read()]
     clone = CloneLLM(model="gpt-3.5-turbo", documents=documents)
     clone.fit()

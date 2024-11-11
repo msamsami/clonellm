@@ -22,7 +22,7 @@ class SpacyEmbeddings(Embeddings):
         self._spacy_kwargs = kwargs
         self._internal_init()
 
-    def _internal_init(self):
+    def _internal_init(self) -> None:
         self._nlp: Language
         try:
             self._nlp = spacy.load(self.model, **self._spacy_kwargs)

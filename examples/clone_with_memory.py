@@ -1,12 +1,10 @@
 from langchain_core.documents import Document
 
 from clonellm import CloneLLM, LiteLLMEmbeddings, RagVectorStore
-
-RESET_MEMORY_COMMANDS = ["reset memory", "clear memory", "clear your memory", "forget everything"]
-EXIT_COMMANDS = ["exit", "quit"]
+from examples.const import EXIT_COMMANDS, RESET_MEMORY_COMMANDS
 
 
-def main():
+def main() -> None:
     documents = [Document(page_content=open("data/about_me.txt").read())]
     embedding = LiteLLMEmbeddings(model="embed-english-light-v3.0")
     clone = CloneLLM(
