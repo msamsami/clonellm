@@ -18,8 +18,8 @@ from clonellm import CloneLLM, LiteLLMEmbeddings, RagVectorStore
 # !pip install unstructured
 
 
-async def main():
-    documents = [
+async def main() -> None:
+    documents: list[Document | str] = [
         Document(page_content=open("about_me.txt", "r").read()),
         open("bio.txt", "r").read(),
     ]
