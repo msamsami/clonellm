@@ -24,9 +24,9 @@
 </h4>
 
 ## Introduction
-A minimal Python package that enables you to create an AI clone of yourself using LLMs. Built on top of LiteLLM and LangChain, CloneLLM utilizes the Retrieval-Augmented Generation (RAG) to tailor AI responses as if you are answering the questions.
+CloneLLM is a minimal Python package that enables you to create an AI clone of yourself using LLMs. Built on top of LiteLLM and LangChain, CloneLLM utilizes Retrieval-Augmented Generation (RAG) to tailor AI responses as if you are answering the questions.
 
-You can input texts and documents about yourself — including personal information, professional experience, educational background, etc. — which are then embedded into a vector space for dynamic retrieval. This AI clone can act as a virtual assistant or digital representation, capable of handling queries and tasks in a manner that reflects the your own knowledge, tone, style and mannerisms.
+You can input texts and documents about yourself — including personal information, professional experience, educational background, etc. — which are then embedded into a vector space for dynamic retrieval. This AI clone can act as a virtual assistant or digital representation, capable of handling queries and tasks in a manner that reflects your own knowledge, tone, style, and mannerisms.
 
 ## Installation
 Before installing CloneLLM, make sure you have Python 3.10 or newer installed on your machine.
