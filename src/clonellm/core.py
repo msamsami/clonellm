@@ -291,10 +291,7 @@ class CloneLLM(LiteLLMMixin):
         ):
             raise AttributeError("This CloneLLM instance is not fitted yet. Call `fit` using this method.")
 
-    def update(
-        self,
-        documents: list[Document | str],
-    ) -> Self:
+    def update(self, documents: list[Document | str]) -> Self:
         """Updates the CloneLLM with additional documents, either embedding them or updating the context.
 
         Args:
@@ -312,10 +309,7 @@ class CloneLLM(LiteLLMMixin):
             self.context = self._get_summarized_context(documents_)
         return self
 
-    async def aupdate(
-        self,
-        documents: list[Document | str],
-    ) -> Self:
+    async def aupdate(self, documents: list[Document | str]) -> Self:
         """Asynchronously updates the CloneLLM with additional documents, either embedding them or updating the context.
 
         Args:
@@ -336,9 +330,9 @@ class CloneLLM(LiteLLMMixin):
     @property
     def _user_profile(self) -> str:
         if isinstance(self.user_profile, BaseModel):
-            return self.user_profile.model_dump_json(exclude_none=True)
+            return self.user_profile.model_dump_json(indent=4, exclude_none=True)
         elif isinstance(self.user_profile, dict):
-            return json.dumps(self.user_profile, default=str)
+            return json.dumps(self.user_profile, indent=4, default=str)
         return str(self.user_profile)
 
     def _get_retriever(self, k: int = 1) -> VectorStoreRetriever:
@@ -364,12 +358,13 @@ class CloneLLM(LiteLLMMixin):
         first_step = RunnablePassthrough.assign(context=context)  # type: ignore[arg-type]
         rag_chain = first_step | prompt | self._llm | StrOutputParser()
 
-        if self.memory in (True, -1):
-            max_memory_size = -1
-        elif self.memory in (False, None, 0):
+        if not self.memory:
             max_memory_size = 0
+        elif (isinstance(self.memory, bool) and self.memory) or self.memory == -1:
+            max_memory_size = -1
         else:
-            max_memory_size = cast(int, self.memory)
+            max_memory_size = int(self.memory)
+
         get_session_history_ = functools.partial(get_session_history, max_memory_size=max_memory_size)
 
         return RunnableWithMessageHistory(

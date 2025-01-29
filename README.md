@@ -10,7 +10,7 @@
 
 <h4 align="center">
     <a href="https://pypi.org/project/clonellm/" target="_blank">
-        <img src="https://img.shields.io/badge/release-v0.2.4-green" alt="Latest Release">
+        <img src="https://img.shields.io/badge/release-v0.3.0-green" alt="Latest Release">
     </a>
     <a href="https://pypi.org/project/clonellm/" target="_blank">
         <img src="https://img.shields.io/pypi/v/clonellm.svg" alt="PyPI Version">
@@ -41,16 +41,9 @@ pip install clonellm
 poetry add clonellm
 ```
 
-### GitHub
+### uv
 ```bash
-# Clone the repository
-git clone https://github.com/msamsami/clonellm.git
-
-# Navigate into the project directory
-cd clonellm
-
-# Install the package
-pip install .
+uv add clonellm
 ```
 
 ## Usage
@@ -179,6 +172,7 @@ clone = CloneLLM(model="gpt-4o", documents=documents, embedding=embedding, vecto
 Create a personalized profile using CloneLLM's `UserProfile`, which allows you to feed detailed personal information into your clone for more customized interactions:
 ```python
 from clonellm import UserProfile
+from clonellm.models import PersonalityTraits
 
 profile = UserProfile(
     first_name="Mehdi",
@@ -186,6 +180,13 @@ profile = UserProfile(
     city="Shiraz",
     country="Iran",
     expertise=["Data Science", "AI/ML", "Data Analytics"],
+    personality_traits=PersonalityTraits(
+        openness=0.8,
+        conscientiousness=0.7,
+        extraversion=0.6,
+        agreeableness=0.9,
+        neuroticism=0.5,
+    ),
 )
 ```
 
@@ -210,7 +211,7 @@ import os
 os.environ["ANTHROPIC_API_KEY"] = "anthropic-api-key"
 
 clone = CloneLLM(
-    model="claude-3-opus-20240229",
+    model="claude-3-5-sonnet-latest",
     documents=documents,
     embedding=embedding,
     vector_store=RagVectorStore.Chroma,
@@ -227,7 +228,7 @@ import os
 os.environ["HUGGINGFACE_API_KEY"] = "huggingface-api-key"
 
 clone = CloneLLM(
-    model="meta-llama/Llama-2-70b-chat",
+    model="meta-llama/Llama-3.3-70B-Instruct",
     documents=documents,
     embedding=embedding,
     memory=10,  # Enable memory with maximum size of 10
@@ -256,8 +257,8 @@ os.environ["VERTEXAI_PROJECT"] = "hardy-device-28813"
 os.environ["VERTEXAI_LOCATION"] = "us-central1"
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "path/to/your/credentials.json"
 
-embedding = LiteLLMEmbeddings(model="textembedding-gecko@001")
-clone = CloneLLM(model="gemini-1.0-pro", documents=documents, embedding=embedding)
+embedding = LiteLLMEmbeddings(model="text-embedding-005")
+clone = CloneLLM(model="gemini-1.5-flash", documents=documents, embedding=embedding)
 
 for chunk in clone.stream("Describe yourself in 100 words"):
     print(chunk, end="", flush=True)
@@ -277,7 +278,7 @@ os.environ["OPENAI_API_KEY"] = "openai-api-key"
 
 async def main():
     documents = [...]
-    embedding = LiteLLMEmbeddings(model="text-embedding-ada-002")
+    embedding = LiteLLMEmbeddings(model="text-embedding-3-large")
     clone = CloneLLM(model="gpt-4o", documents=documents, embedding=embedding)
     await clone.afit()
     response = await clone.ainvoke("Tell me about your skills?")
@@ -299,7 +300,7 @@ os.environ["OPENAI_API_KEY"] = "openai-api-key"
 async def main():
     documents = [...]
     embedding = LiteLLMEmbeddings(model="text-embedding-3-small")
-    clone = CloneLLM(model="gpt-4o", documents=documents, embedding=embedding)
+    clone = CloneLLM(model="gpt-4o-mini", documents=documents, embedding=embedding)
     await clone.afit()
     async for chunk in clone.astream("How comfortable are you with remote work?"):
         print(chunk, end="", flush=True)

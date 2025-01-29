@@ -4,6 +4,7 @@ import datetime
 from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
 
 from clonellm import CloneLLM, LiteLLMEmbeddings, RagVectorStore, UserProfile
+from clonellm.models import CommunicationSample, PersonalityTraits
 from examples.const import EXIT_COMMANDS, RESET_MEMORY_COMMANDS
 
 # !pip install clonellm[chroma]
@@ -32,11 +33,26 @@ async def main() -> None:
         country="USA",
         phone_number="+1234567890",
         email="jane.doe@example.com",
+        personality_traits=PersonalityTraits(
+            openness=0.8,
+            conscientiousness=0.7,
+            extraversion=0.6,
+            agreeableness=0.7,
+            neuroticism=0.6,
+        ),
         education_experience=[
             {"Degree": "Bachelor's", "Field": "Computer Science", "Institution": "State University", "Year": 2018},
             {"Degree": "Master's", "Field": "Data Science", "Institution": "Tech College", "Year": 2021},
         ],
         expertise=["Python", "Data Analysis", "Data Science", "Machine Learning"],
+        communication_samples=[
+            CommunicationSample(
+                context="Interview",
+                audience_type="Interviewer",
+                formality_level=0.5,
+                content="Hello, I am a Data Scientist and ML Engineer who is looking for a new job.",
+            )
+        ],
         home_page="http://www.jane-doe.com",
         github_page="http://www.github.com/jane_doe",
         linkedin_page="http://www.linkedin.com/in/jane_doe",

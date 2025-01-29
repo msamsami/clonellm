@@ -1,7 +1,13 @@
 from abc import ABCMeta
 from typing import Any, Optional, cast
 
-from litellm import get_api_key, get_llm_provider
+from litellm.utils import get_api_key
+
+try:
+    from litellm.utils import get_llm_provider  # type: ignore[attr-defined]
+except (ImportError, AttributeError):
+    from litellm.litellm_core_utils.get_llm_provider_logic import get_llm_provider
+
 
 __all__ = ("LiteLLMMixin",)
 
