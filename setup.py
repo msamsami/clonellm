@@ -12,9 +12,6 @@ def get_requirements(filename: str) -> list[str]:
     return [p for line in open(filename).readlines() if (p := line.replace("\n", "").strip()) and not p.startswith("#")]
 
 
-requirements = get_requirements("requirements.txt")
-requirements_dev = get_requirements("requirements_dev.txt")
-
 setup(
     name="clonellm",
     version=__version__,
@@ -42,6 +39,6 @@ setup(
         "License :: OSI Approved :: MIT License",
     ],
     python_requires=">=3.10,<3.13",
-    install_requires=requirements,
-    extras_require={"chroma": ["langchain-chroma"], "faiss": ["faiss-cpu"], "dev": requirements_dev},
+    install_requires=get_requirements("requirements.txt"),
+    extras_require={"chroma": ["langchain-chroma"], "faiss": ["faiss-cpu"]},
 )
