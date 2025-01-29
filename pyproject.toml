@@ -39,7 +39,7 @@ exclude=["tests", "examples"]
 namespace_packages = false
 files = ["src/clonellm/**/*.py"]
 check_untyped_defs = true
-disable_error_code = ["empty-body"]
+disable_error_code = ["empty-body", "unused-ignore"]
 strict = true
 
 [[tool.mypy.overrides]]
