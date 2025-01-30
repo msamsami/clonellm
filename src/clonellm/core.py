@@ -26,7 +26,7 @@ else:
 
 from ._base import LiteLLMMixin
 from ._prompt import (
-    context_prompt,
+    get_context_prompt,
     history_prompt,
     question_prompt,
     summarize_context_prompt,
@@ -52,6 +52,7 @@ class CloneLLM(LiteLLMMixin):
         user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
         memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
         api_key (Optional[str]): The API key to use. Defaults to None.
+        system_prompts (Optional[list[str]]): Additional system prompts (instructions) for the language model. Defaults to None.
         **kwargs (Any): Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
     """
@@ -70,6 +71,7 @@ class CloneLLM(LiteLLMMixin):
         user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
         memory: Optional[bool | int] = None,
         api_key: Optional[str] = None,
+        system_prompts: Optional[list[str]] = None,
         **kwargs: Any,
     ) -> None:
         self.embedding = embedding
@@ -77,6 +79,7 @@ class CloneLLM(LiteLLMMixin):
         self.documents = documents
         self.user_profile = user_profile
         self.memory = memory
+        self.system_prompts = system_prompts
 
         from_class_method: Optional[dict[str, Any]] = kwargs.pop(self._FROM_CLASS_METHOD_KWARG, None)
         super().__init__(model, api_key, **kwargs)
@@ -134,6 +137,7 @@ class CloneLLM(LiteLLMMixin):
         user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
         memory: Optional[bool | int] = None,
         api_key: Optional[str] = None,
+        system_prompts: Optional[list[str]] = None,
         **kwargs: Any,
     ) -> Self:
         """Creates an instance of CloneLLM by loading a Chroma vector store from a persistent directory.
@@ -145,6 +149,7 @@ class CloneLLM(LiteLLMMixin):
             user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
             memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
             api_key (Optional[str]): The API key to use. Defaults to None.
+            system_prompts (Optional[list[str]]): Additional system prompts (instructions) for the language model. Defaults to None.
             **kwargs (Any): Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
         Returns:
@@ -170,6 +175,7 @@ class CloneLLM(LiteLLMMixin):
             user_profile=user_profile,
             memory=memory,
             api_key=api_key,
+            system_prompts=system_prompts,
             **kwargs,
         )
 
@@ -181,6 +187,7 @@ class CloneLLM(LiteLLMMixin):
         user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
         memory: Optional[bool | int] = None,
         api_key: Optional[str] = None,
+        system_prompts: Optional[list[str]] = None,
         **kwargs: Any,
     ) -> Self:
         """Creates an instance of CloneLLM using a summarized context string instead of documents.
@@ -191,6 +198,7 @@ class CloneLLM(LiteLLMMixin):
             user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
             memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
             api_key (Optional[str]): The API key to use. Defaults to None.
+            system_prompts (Optional[list[str]]): Additional system prompts (instructions) for the language model. Defaults to None.
             **kwargs (Any): Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
         Returns:
@@ -203,6 +211,7 @@ class CloneLLM(LiteLLMMixin):
             user_profile=user_profile,
             memory=memory,
             api_key=api_key,
+            system_prompts=system_prompts,
             **kwargs,
         )
 
@@ -339,7 +348,7 @@ class CloneLLM(LiteLLMMixin):
         return self.db.as_retriever(search_kwargs={"k": k})
 
     def _get_rag_chain(self) -> RunnableSerializable[Any, str]:
-        prompt = context_prompt.copy()
+        prompt = get_context_prompt(self.system_prompts)
         if self.user_profile:
             prompt += user_profile_prompt.format_messages(user_profile=self._user_profile)
         prompt += question_prompt
@@ -348,7 +357,7 @@ class CloneLLM(LiteLLMMixin):
         return {"context": context, "input": RunnablePassthrough()} | prompt | self._llm | StrOutputParser()
 
     def _get_rag_chain_with_history(self) -> RunnableWithMessageHistory:
-        prompt = context_prompt
+        prompt = get_context_prompt(self.system_prompts)
         if self.user_profile:
             prompt += user_profile_prompt.format_messages(user_profile=self._user_profile)
         prompt += history_prompt
