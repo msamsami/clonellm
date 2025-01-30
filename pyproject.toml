@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "clonellm"
-version = "0.3.0"
+version = "0.4.0"
 description = "Python package to create an AI clone of yourself using LLMs."
 packages = [{ from = "src", include = "clonellm" }]
 include = ["src/clonellm/py.typed"]
@@ -15,10 +15,11 @@ keywords = ["python", "ai", "llm", "rag"]
 repository = "https://github.com/msamsami/clonellm"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
+python = ">=3.10,<3.14"
 litellm = "^1.36.0"
 langchain = "^0.1.17"
 pydantic = {version = ">=2.8.0", python = ">=3.12.4"}
+legacy-cgi = {version = ">=2.6.2", python = ">=3.13"}
 langchain-chroma = {version = "*", optional = true}
 faiss-cpu = {version = "*", optional = true}
 

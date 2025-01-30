@@ -10,13 +10,13 @@
 
 <h4 align="center">
     <a href="https://pypi.org/project/clonellm/" target="_blank">
-        <img src="https://img.shields.io/badge/release-v0.3.0-green" alt="Latest Release">
+        <img src="https://img.shields.io/badge/release-v0.4.0-green" alt="Latest Release">
     </a>
     <a href="https://pypi.org/project/clonellm/" target="_blank">
         <img src="https://img.shields.io/pypi/v/clonellm.svg" alt="PyPI Version">
     </a>
     <a target="_blank">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Python Versions">
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python Versions">
     </a>
     <a target="_blank">
         <img src="https://img.shields.io/pypi/l/clonellm" alt="PyPI License">
@@ -245,6 +245,18 @@ If you needed to clear the history of the conversation, i.e., the clone memory, 
 ```python
 clone.clear_memory()
 # clone.reset_memory()
+```
+
+### Additional system prompts
+You can pass additional system prompts (instructions) to the clone to guide its behavior.
+```python
+from clonellm import CloneLLM
+
+clone = CloneLLM(
+    model="gpt-4o",
+    documents=documents,
+    system_prompts=["Keep your responses brief and concise, and always respond in first person."],
+)
 ```
 
 ### Streaming
