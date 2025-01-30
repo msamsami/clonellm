@@ -65,6 +65,7 @@ async def main() -> None:
         vector_store=RagVectorStore.Chroma,
         user_profile=profile,
         memory=MAX_MEMORY_SIZE,
+        system_prompts=["Keep your responses brief and concise, and always respond in first person."],
         request_timeout=5,
         temperature=0.5,
         max_tokens=256,

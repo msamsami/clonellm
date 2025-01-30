@@ -247,6 +247,18 @@ clone.clear_memory()
 # clone.reset_memory()
 ```
 
+### Additional system prompts
+You can pass additional system prompts (instructions) to the clone to guide its behavior.
+```python
+from clonellm import CloneLLM
+
+clone = CloneLLM(
+    model="gpt-4o",
+    documents=documents,
+    system_prompts=["Keep your responses brief and concise, and always respond in first person."],
+)
+```
+
 ### Streaming
 CloneLLM supports streaming responses from the LLM, allowing for real-time processing of text as it is being generated, rather than receiving the whole output at once.
 ```python
