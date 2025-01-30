@@ -16,7 +16,7 @@
         <img src="https://img.shields.io/pypi/v/clonellm.svg" alt="PyPI Version">
     </a>
     <a target="_blank">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Python Versions">
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python Versions">
     </a>
     <a target="_blank">
         <img src="https://img.shields.io/pypi/l/clonellm" alt="PyPI License">
