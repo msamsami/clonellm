@@ -1,5 +1,5 @@
 from abc import ABCMeta
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 from litellm.utils import get_api_key
 
@@ -13,7 +13,7 @@ __all__ = ("LiteLLMMixin",)
 
 
 class LiteLLMMixin(metaclass=ABCMeta):
-    def __init__(self, model: str, api_key: Optional[str] = None, **kwargs: Any) -> None:
+    def __init__(self, model: str, api_key: str | None = None, **kwargs: Any) -> None:
         self.model = model
         self.api_key = api_key
         self._litellm_kwargs: dict[str, Any] = kwargs
@@ -23,8 +23,8 @@ class LiteLLMMixin(metaclass=ABCMeta):
         return cast(str, get_llm_provider(model=self.model)[1])
 
     @property
-    def _api_key(self) -> Optional[str]:
+    def _api_key(self) -> str | None:
         if self.api_key:
             return self.api_key
         else:
-            return cast(Optional[str], get_api_key(llm_provider=self._llm_provider, dynamic_api_key=self.api_key))
+            return cast(str | None, get_api_key(llm_provider=self._llm_provider, dynamic_api_key=self.api_key))

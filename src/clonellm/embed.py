@@ -1,4 +1,4 @@
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 from langchain_core.embeddings import Embeddings
 from litellm import aembedding, all_embedding_models, embedding
@@ -13,13 +13,13 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
 
     Args:
         model (str): The embedding model to use.
-        api_key (Optional[str]): The API key to use. Defaults to None.
-        dimensions (Optional[int]): The number of dimensions the resulting output embeddings should have. Defaults to None.
+        api_key (str | None): The API key to use. Defaults to None.
+        dimensions (int | None): The number of dimensions the resulting output embeddings should have. Defaults to None.
         **kwargs (Any): Additional keyword arguments supported by the `litellm.embedding` and `litellm.aembedding` functions.
 
     """
 
-    def __init__(self, model: str, api_key: Optional[str] = None, dimensions: Optional[int] = None, **kwargs: Any) -> None:
+    def __init__(self, model: str, api_key: str | None = None, dimensions: int | None = None, **kwargs: Any) -> None:
         super().__init__(model, api_key, **kwargs)
         self.dimensions = dimensions
 
