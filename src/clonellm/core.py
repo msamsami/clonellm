@@ -491,7 +491,7 @@ class CloneLLM(LiteLLMMixin):
         """
         Returns the available models grouped by their providers.
         """
-        return cast(dict[str, list[str]], models_by_provider)
+        return models_by_provider
 
     def __repr__(self) -> str:
         return f"CloneLLM<(model='{self.model}'" + (f", memory={self.memory}" * (self.memory is not None)) + ")>"

@@ -1,4 +1,4 @@
-from typing import Any, cast
+from typing import Any
 
 from langchain_core.embeddings import Embeddings
 from litellm import aembedding, all_embedding_models, embedding
@@ -79,7 +79,7 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
         """
         Returns the names of supported embedding models.
         """
-        return cast(list[str], all_embedding_models)
+        return all_embedding_models
 
     def __repr__(self) -> str:
         return (
