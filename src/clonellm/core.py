@@ -5,7 +5,7 @@ import sys
 import uuid
 from importlib.util import find_spec
 from operator import itemgetter
-from typing import Any, AsyncIterator, Iterator, Optional, cast
+from typing import Any, AsyncIterator, Iterator, cast
 
 from langchain.text_splitter import CharacterTextSplitter, TextSplitter
 from langchain_community.chat_models import ChatLiteLLM
@@ -47,12 +47,12 @@ class CloneLLM(LiteLLMMixin):
     Args:
         model (str): Name of the language model.
         documents (list[Document | str]): List of documents or strings related to cloning user to use for LLM context.
-        embedding (Optional[Embeddings]): The embedding function to use for RAG. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
-        vector_store (Optional[str | RagVectorStore]): The vector store to use for embedding-based retrieval. Defaults to None for "in-memory" vector store.
-        user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
-        memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
-        api_key (Optional[str]): The API key to use. Defaults to None.
-        system_prompts (Optional[list[str]]): Additional system prompts (instructions) for the language model. Defaults to None.
+        embedding (Embeddings | None): The embedding function to use for RAG. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
+        vector_store (str | RagVectorStore | None): The vector store to use for embedding-based retrieval. Defaults to None for "in-memory" vector store.
+        user_profile (UserProfile | dict[str, Any] | str | None): The profile of the user to be cloned by the language model. Defaults to None.
+        memory (bool | int | None): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
+        api_key (str | None): The API key to use. Defaults to None.
+        system_prompts (list[str] | None): Additional system prompts (instructions) for the language model. Defaults to None.
         **kwargs (Any): Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
     """
@@ -66,12 +66,12 @@ class CloneLLM(LiteLLMMixin):
         self,
         model: str,
         documents: list[Document | str],
-        embedding: Optional[Embeddings] = None,
-        vector_store: Optional[str | RagVectorStore] = None,
-        user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
-        memory: Optional[bool | int] = None,
-        api_key: Optional[str] = None,
-        system_prompts: Optional[list[str]] = None,
+        embedding: Embeddings | None = None,
+        vector_store: str | RagVectorStore | None = None,
+        user_profile: UserProfile | dict[str, Any] | str | None = None,
+        memory: bool | int | None = None,
+        api_key: str | None = None,
+        system_prompts: list[str] | None = None,
         **kwargs: Any,
     ) -> None:
         self.embedding = embedding
@@ -81,7 +81,7 @@ class CloneLLM(LiteLLMMixin):
         self.memory = memory
         self.system_prompts = system_prompts
 
-        from_class_method: Optional[dict[str, Any]] = kwargs.pop(self._FROM_CLASS_METHOD_KWARG, None)
+        from_class_method: dict[str, Any] | None = kwargs.pop(self._FROM_CLASS_METHOD_KWARG, None)
         super().__init__(model, api_key, **kwargs)
         self._internal_init(from_class_method)
 
@@ -110,7 +110,7 @@ class CloneLLM(LiteLLMMixin):
             else:
                 raise ValueError(f"Unsupported vector store '{self.vector_store}' provided.")
 
-    def _internal_init(self, from_class_method: Optional[dict[str, Any]] = None) -> None:
+    def _internal_init(self, from_class_method: dict[str, Any] | None = None) -> None:
         self._splitter: TextSplitter
         self.context: str
         self.db: VectorStore
@@ -133,11 +133,11 @@ class CloneLLM(LiteLLMMixin):
         cls,
         model: str,
         chroma_persist_directory: str,
-        embedding: Optional[Embeddings] = None,
-        user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
-        memory: Optional[bool | int] = None,
-        api_key: Optional[str] = None,
-        system_prompts: Optional[list[str]] = None,
+        embedding: Embeddings | None = None,
+        user_profile: UserProfile | dict[str, Any] | str | None = None,
+        memory: bool | int | None = None,
+        api_key: str | None = None,
+        system_prompts: list[str] | None = None,
         **kwargs: Any,
     ) -> Self:
         """Creates an instance of CloneLLM by loading a Chroma vector store from a persistent directory.
@@ -145,11 +145,11 @@ class CloneLLM(LiteLLMMixin):
         Args:
             model (str): Name of the language model.
             chroma_persist_directory (str): Directory path to the persisted Chroma vector store.
-            embedding (Optional[Embeddings]): The embedding function to use for Chroma store. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
-            user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
-            memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
-            api_key (Optional[str]): The API key to use. Defaults to None.
-            system_prompts (Optional[list[str]]): Additional system prompts (instructions) for the language model. Defaults to None.
+            embedding (Embeddings | None): The embedding function to use for Chroma store. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
+            user_profile (UserProfile | dict[str, Any] | str | None): The profile of the user to be cloned by the language model. Defaults to None.
+            memory (bool | int | None): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
+            api_key (str | None): The API key to use. Defaults to None.
+            system_prompts (list[str] | None): Additional system prompts (instructions) for the language model. Defaults to None.
             **kwargs (Any): Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
         Returns:
@@ -184,10 +184,10 @@ class CloneLLM(LiteLLMMixin):
         cls,
         model: str,
         context: str,
-        user_profile: Optional[UserProfile | dict[str, Any] | str] = None,
-        memory: Optional[bool | int] = None,
-        api_key: Optional[str] = None,
-        system_prompts: Optional[list[str]] = None,
+        user_profile: UserProfile | dict[str, Any] | str | None = None,
+        memory: bool | int | None = None,
+        api_key: str | None = None,
+        system_prompts: list[str] | None = None,
         **kwargs: Any,
     ) -> Self:
         """Creates an instance of CloneLLM using a summarized context string instead of documents.
@@ -195,10 +195,10 @@ class CloneLLM(LiteLLMMixin):
         Args:
             model (str): Name of the language model.
             context (str): Pre-summarized context string for the language model.
-            user_profile (Optional[UserProfile | dict[str, Any] | str]): The profile of the user to be cloned by the language model. Defaults to None.
-            memory (Optional[bool | int]): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
-            api_key (Optional[str]): The API key to use. Defaults to None.
-            system_prompts (Optional[list[str]]): Additional system prompts (instructions) for the language model. Defaults to None.
+            user_profile (UserProfile | dict[str, Any] | str | None): The profile of the user to be cloned by the language model. Defaults to None.
+            memory (bool | int | None): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
+            api_key (str | None): The API key to use. Defaults to None.
+            system_prompts (list[str] | None): Additional system prompts (instructions) for the language model. Defaults to None.
             **kwargs (Any): Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
         Returns:
@@ -215,7 +215,7 @@ class CloneLLM(LiteLLMMixin):
             **kwargs,
         )
 
-    def _get_documents(self, documents: Optional[list[Document | str]] = None) -> list[Document]:
+    def _get_documents(self, documents: list[Document | str] | None = None) -> list[Document]:
         if not (documents or self.documents):
             raise ValueError("No documents provided")
         documents_ = []
@@ -491,7 +491,7 @@ class CloneLLM(LiteLLMMixin):
         """
         Returns the available models grouped by their providers.
         """
-        return cast(dict[str, list[str]], models_by_provider)
+        return models_by_provider
 
     def __repr__(self) -> str:
         return f"CloneLLM<(model='{self.model}'" + (f", memory={self.memory}" * (self.memory is not None)) + ")>"

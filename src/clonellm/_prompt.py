@@ -1,5 +1,3 @@
-from typing import Optional
-
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 __all__ = ("summarize_context_prompt", "get_context_prompt", "user_profile_prompt", "history_prompt", "question_prompt")
@@ -15,7 +13,7 @@ summarize_context_prompt = ChatPromptTemplate.from_messages(
 )
 
 
-def get_context_prompt(additional_system_prompts: Optional[list[str]] = None) -> ChatPromptTemplate:
+def get_context_prompt(additional_system_prompts: list[str] | None = None) -> ChatPromptTemplate:
     prompts = [
         ("system", "You are my human clone. Act as I would. Do not ask questions about me. If anyone asks, you are me."),
         ("system", "You are having a conversation with someone who wants to learn more about you."),

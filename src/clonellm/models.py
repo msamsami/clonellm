@@ -1,5 +1,5 @@
 import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -48,30 +48,30 @@ class CommunicationSample(BaseModel):
 
 class UserProfile(BaseModel):
     first_name: str
-    middle_name: Optional[str] = None
+    middle_name: str | None = None
     last_name: str
-    preferred_name: Optional[str] = None
-    prefix: Optional[str] = None
-    birth_date: Optional[datetime.date | str] = None
-    gender: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    country: Optional[str] = None
-    phone_number: Optional[str] = None
-    email: Optional[str] = None
-    personality_traits: Optional[PersonalityTraits] = None
-    education_experience: Optional[Any] = None
-    work_experience: Optional[Any] = None
-    expertise: Optional[Any] = None
-    communication_samples: Optional[list[CommunicationSample]] = None
-    home_page: Optional[str] = None
-    github_page: Optional[str] = None
-    linkedin_page: Optional[str] = None
+    preferred_name: str | None = None
+    prefix: str | None = None
+    birth_date: datetime.date | str | None = None
+    gender: str | None = None
+    city: str | None = None
+    state: str | None = None
+    country: str | None = None
+    phone_number: str | None = None
+    email: str | None = None
+    personality_traits: PersonalityTraits | None = None
+    education_experience: Any = None
+    work_experience: Any = None
+    expertise: Any = None
+    communication_samples: list[CommunicationSample] | None = None
+    home_page: str | None = None
+    github_page: str | None = None
+    linkedin_page: str | None = None
 
     @property
     def full_name(self) -> str:
         return " ".join([self.first_name, self.middle_name or "", self.last_name])
 
     @property
-    def age(self) -> Optional[int]:
+    def age(self) -> int | None:
         return (datetime.date.today() - self.birth_date).days // 365 if isinstance(self.birth_date, datetime.date) else None
