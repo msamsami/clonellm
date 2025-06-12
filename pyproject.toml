@@ -35,6 +35,11 @@ ruff = "<1.0.0"
 pre-commit = "*"
 isort = "*"
 
+[tool.poetry.urls]
+"Homepage" = "https://github.com/msamsami/clonellm"
+"Repository" = "https://github.com/msamsami/clonellm"
+"Issues" = "https://github.com/msamsami/clonellm/issues"
+
 [tool.mypy]
 exclude=["tests", "examples"]
 namespace_packages = false
@@ -60,10 +65,8 @@ filterwarnings = ["ignore"]
 include = ["*.py", "*.pyi", "**/pyproject.toml"]
 line-length = 130
 
-[tool.black]
-line-length = 130
-
 [tool.isort]
 atomic = true
 profile = "black"
 skip_gitignore = true
+known_first_party = ["clonellm"]
