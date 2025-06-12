@@ -65,9 +65,6 @@ filterwarnings = ["ignore"]
 include = ["*.py", "*.pyi", "**/pyproject.toml"]
 line-length = 130
 
-[tool.black]
-line-length = 130
-
 [tool.isort]
 atomic = true
 profile = "black"
