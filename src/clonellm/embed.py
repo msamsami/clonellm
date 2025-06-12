@@ -12,11 +12,10 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
     """A class that uses LiteLLM to call an LLM's API to generate embeddings for the given input.
 
     Args:
-        model (str): The embedding model to use.
-        api_key (str | None): The API key to use. Defaults to None.
-        dimensions (int | None): The number of dimensions the resulting output embeddings should have. Defaults to None.
-        **kwargs (Any): Additional keyword arguments supported by the `litellm.embedding` and `litellm.aembedding` functions.
-
+        model: The embedding model to use.
+        api_key: The API key to use. Defaults to None.
+        dimensions: The number of dimensions the resulting output embeddings should have. Defaults to None.
+        **kwargs: Additional keyword arguments supported by the `litellm.embedding` and `litellm.aembedding` functions.
     """
 
     def __init__(self, model: str, api_key: str | None = None, dimensions: int | None = None, **kwargs: Any) -> None:
@@ -27,10 +26,10 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
         """Call out to LLM's embedding endpoint for embedding a list of documents.
 
         Args:
-            texts (list[str]): The list of texts to embed.
+            texts: The list of texts to embed.
 
         Returns:
-            list[list[float]]: List of embeddings, one for each text.
+            List of embeddings, one for each text.
         """
         response = embedding(
             model=self.model, input=texts, api_key=self.api_key, dimensions=self.dimensions, **self._litellm_kwargs
@@ -41,10 +40,10 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
         """Call out to LLM's embedding endpoint async for embedding a list of documents.
 
         Args:
-            texts (list[str]): The list of texts to embed.
+            texts: The list of texts to embed.
 
         Returns:
-            list[list[float]]: List of embeddings, one for each text.
+            List of embeddings, one for each text.
         """
         response = await aembedding(
             model=self.model, input=texts, api_key=self.api_key, dimensions=self.dimensions, **self._litellm_kwargs
@@ -55,10 +54,10 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
         """Call out to LLM's embedding endpoint for embedding query text.
 
         Args:
-            text (str): The text to embed.
+            text: The text to embed.
 
         Returns:
-            list[float]: Embedding for the text.
+            Embedding for the text.
         """
         return self.embed_documents([text])[0]
 
@@ -66,10 +65,10 @@ class LiteLLMEmbeddings(LiteLLMMixin, Embeddings):
         """Call out to LLM's embedding endpoint async for embedding query text.
 
         Args:
-            text (str): The text to embed.
+            text: The text to embed.
 
         Returns:
-            list[float]: Embedding for the text.
+            Embedding for the text.
         """
         embeddings = await self.aembed_documents([text])
         return embeddings[0]

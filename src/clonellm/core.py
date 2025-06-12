@@ -45,16 +45,15 @@ class CloneLLM(LiteLLMMixin):
     """Creates an LLM clone of a user based on provided user profile and related context.
 
     Args:
-        model (str): Name of the language model.
-        documents (list[Document | str]): List of documents or strings related to cloning user to use for LLM context.
-        embedding (Embeddings | None): The embedding function to use for RAG. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
-        vector_store (str | RagVectorStore | None): The vector store to use for embedding-based retrieval. Defaults to None for "in-memory" vector store.
-        user_profile (UserProfile | dict[str, Any] | str | None): The profile of the user to be cloned by the language model. Defaults to None.
-        memory (bool | int | None): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
-        api_key (str | None): The API key to use. Defaults to None.
-        system_prompts (list[str] | None): Additional system prompts (instructions) for the language model. Defaults to None.
-        **kwargs (Any): Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
-
+        model: Name of the language model.
+        documents: List of documents or strings related to cloning user to use for LLM context.
+        embedding: The embedding function to use for RAG. If not provided, a summary of `documents` is used for RAG.
+        vector_store: The vector store to use for embedding-based retrieval. Defaults to None for "in-memory" vector store.
+        user_profile: The profile of the user to be cloned by the language model. Defaults to None.
+        memory: Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
+        api_key: The API key to use. Defaults to None.
+        system_prompts: Additional system prompts (instructions) for the language model. Defaults to None.
+        **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
     """
 
     _VECTOR_STORE_COLLECTION_NAME = "clonellm"
@@ -143,17 +142,17 @@ class CloneLLM(LiteLLMMixin):
         """Creates an instance of CloneLLM by loading a Chroma vector store from a persistent directory.
 
         Args:
-            model (str): Name of the language model.
-            chroma_persist_directory (str): Directory path to the persisted Chroma vector store.
-            embedding (Embeddings | None): The embedding function to use for Chroma store. Defaults to None for no embedding, i.e., a summary of `documents` is used for RAG.
-            user_profile (UserProfile | dict[str, Any] | str | None): The profile of the user to be cloned by the language model. Defaults to None.
-            memory (bool | int | None): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
-            api_key (str | None): The API key to use. Defaults to None.
-            system_prompts (list[str] | None): Additional system prompts (instructions) for the language model. Defaults to None.
-            **kwargs (Any): Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
+            model: Name of the language model.
+            chroma_persist_directory: Directory path to the persisted Chroma vector store.
+            embedding: The embedding function to use for Chroma store. If not provided, a summary of `documents` is used for RAG.
+            user_profile: The profile of the user to be cloned by the language model. Defaults to None.
+            memory: Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
+            api_key: The API key to use. Defaults to None.
+            system_prompts: Additional system prompts (instructions) for the language model. Defaults to None.
+            **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
         Returns:
-            CloneLLM: An instance of CloneLLM with Chroma-based retrieval.
+            An instance of CloneLLM with Chroma-based retrieval.
         """
         kwargs.update(
             {
@@ -193,16 +192,16 @@ class CloneLLM(LiteLLMMixin):
         """Creates an instance of CloneLLM using a summarized context string instead of documents.
 
         Args:
-            model (str): Name of the language model.
-            context (str): Pre-summarized context string for the language model.
-            user_profile (UserProfile | dict[str, Any] | str | None): The profile of the user to be cloned by the language model. Defaults to None.
-            memory (bool | int | None): Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
-            api_key (str | None): The API key to use. Defaults to None.
-            system_prompts (list[str] | None): Additional system prompts (instructions) for the language model. Defaults to None.
-            **kwargs (Any): Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
+            model: Name of the language model.
+            context: Pre-summarized context string for the language model.
+            user_profile: The profile of the user to be cloned by the language model. Defaults to None.
+            memory: Maximum number of messages in conversation memory. Defaults to None (or 0) for no memory. -1 or `True` means infinite memory.
+            api_key: The API key to use. Defaults to None.
+            system_prompts: Additional system prompts (instructions) for the language model. Defaults to None.
+            **kwargs: Additional keyword arguments supported by the `langchain_community.chat_models.ChatLiteLLM` class.
 
         Returns:
-            CloneLLM instance using the provided context.
+            An instance of CloneLLM with the provided context.
         """
         kwargs.update({cls._FROM_CLASS_METHOD_KWARG: {"context": context, "_is_fitted": True}})
         return cls(
@@ -238,7 +237,7 @@ class CloneLLM(LiteLLMMixin):
         Embeds the documents for retrieval using the selected vector store or generates a summarized context.
 
         Returns:
-            CloneLLM: Fitted CloneLLM instance.
+            Fitted CloneLLM instance.
         """
         documents = self._get_documents()
         if self.embedding:
@@ -304,10 +303,10 @@ class CloneLLM(LiteLLMMixin):
         """Updates the CloneLLM with additional documents, either embedding them or updating the context.
 
         Args:
-            documents (list[Document | str]): Additional documents to add to the model.
+            documents: Additional documents to add to the model.
 
         Returns:
-            CloneLLM: Updated CloneLLM instance.
+            Updated CloneLLM instance.
         """
         self._check_is_fitted(from_update=True)
         documents_ = self._get_documents(documents)
@@ -322,10 +321,10 @@ class CloneLLM(LiteLLMMixin):
         """Asynchronously updates the CloneLLM with additional documents, either embedding them or updating the context.
 
         Args:
-            documents (list[Document | str]): Additional documents to add to the model.
+            documents: Additional documents to add to the model.
 
         Returns:
-            CloneLLM: Updated CloneLLM instance.
+            Updated CloneLLM instance.
         """
         self._check_is_fitted(from_update=True)
         documents_ = self._get_documents(documents)
@@ -390,10 +389,10 @@ class CloneLLM(LiteLLMMixin):
         This method uses the underlying language model to simulate responses as if coming from the cloned user profile.
 
         Args:
-            prompt (str): Input prompt for the cloned language model.
+            prompt: Input prompt for the cloned language model.
 
         Returns:
-            str: The generated response from the language model as the cloned user.
+            The generated response from the language model as the cloned user.
         """
         self._check_is_fitted()
         if self.memory:
@@ -409,10 +408,10 @@ class CloneLLM(LiteLLMMixin):
         This method uses the underlying language model to simulate responses as if coming from the cloned user profile.
 
         Args:
-            prompt (str): Input prompt for the cloned language model.
+            prompt: Input prompt for the cloned language model.
 
         Returns:
-            str: The generated response from the language model as the cloned user.
+            The generated response from the language model as the cloned user.
         """
         self._check_is_fitted()
         if self.memory:
@@ -428,10 +427,10 @@ class CloneLLM(LiteLLMMixin):
         """Streams responses from the cloned language model for a given prompt, returning the output in chunks.
 
         Args:
-            prompt (str): Input prompt for the cloned language model.
+            prompt: Input prompt for the cloned language model.
 
         Returns:
-            Iterator[str]: An iterator over the streamed response chunks from the cloned language model.
+            An iterator over the streamed response chunks from the cloned language model.
         """
         self._check_is_fitted()
         if self.memory:
@@ -449,10 +448,10 @@ class CloneLLM(LiteLLMMixin):
         """Asynchronously streams responses from the cloned language model for a given prompt, returning the output in chunks.
 
         Args:
-            prompt (str): Input prompt for the cloned language model.
+            prompt: Input prompt for the cloned language model.
 
         Returns:
-            AsyncIterator[str]: An asynchronous iterator over the streamed response chunks from the cloned language model.
+            An asynchronous iterator over the streamed response chunks from the cloned language model.
         """
         self._check_is_fitted()
         if self.memory:

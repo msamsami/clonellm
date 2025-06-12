@@ -13,7 +13,7 @@ class SpacyEmbeddings(Embeddings):
     """A class that uses spaCy to generate embeddings for the given input.
 
     Args:
-        model (str): The spaCy model to use, e.g., 'en_core_web_md'.
+        model: The spaCy model to use, e.g., 'en_core_web_md'.
         **kwargs: Additional keyword arguments supported by spaCy's `load` function.
     """
 
@@ -35,10 +35,10 @@ class SpacyEmbeddings(Embeddings):
         """Call spaCy's model to generate embeddings for a list of documents.
 
         Args:
-            texts (list[str]): The list of texts to embed.
+            texts: The list of texts to embed.
 
         Returns:
-            list[list[float]]: List of embeddings, one for each text.
+            List of embeddings, one for each text.
         """
         return [self._nlp(text).vector.tolist() for text in texts]
 
@@ -46,10 +46,10 @@ class SpacyEmbeddings(Embeddings):
         """Asynchronously generate embeddings for a list of documents using spaCy's model.
 
         Args:
-            texts (List[str]): The list of texts to embed.
+            texts: The list of texts to embed.
 
         Returns:
-            list[list[float]]: List of embeddings, one for each text.
+            List of embeddings, one for each text.
         """
         return await asyncio.to_thread(self.embed_documents, texts)
 
@@ -57,10 +57,10 @@ class SpacyEmbeddings(Embeddings):
         """Generate an embedding for a single query text.
 
         Args:
-            text (str): The text to embed.
+            text: The text to embed.
 
         Returns:
-            list[float]: Embedding for the text.
+            Embedding for the text.
         """
         return self._nlp(text).vector.tolist()
 
@@ -68,10 +68,10 @@ class SpacyEmbeddings(Embeddings):
         """Asynchronously generate embedding for a single query text.
 
         Args:
-            text (str): The text to embed.
+            text: The text to embed.
 
         Returns:
-            list[float]: Embedding for the text.
+            Embedding for the text.
         """
         return await asyncio.to_thread(self.embed_query, text)
 
