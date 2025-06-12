@@ -28,7 +28,7 @@ class InMemoryHistory(BaseChatMessageHistory, BaseModel):
         """Add a list of messages to the store
 
         Args:
-            messages (Sequence[BaseMessage]): A list of BaseMessage objects to store.
+            messages: A list of BaseMessage objects to store.
         """
         for message in messages:
             self.messages.append(message)
