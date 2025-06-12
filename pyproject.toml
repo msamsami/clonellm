@@ -72,3 +72,4 @@ line-length = 130
 atomic = true
 profile = "black"
 skip_gitignore = true
+known_first_party = ["clonellm"]
